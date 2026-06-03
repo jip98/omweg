@@ -20,6 +20,9 @@ export default function TourPage() {
   const [timerRunning, setTimerRunning] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [aiStatus, setAiStatus] = useState<'online' | 'offline' | 'unknown'>(
+    AI_WORKER_URL ? 'unknown' : 'offline'
+  )
   const loadedRef = useRef(false)
 
   const durationSeconds = (tour?.settings.duration ?? 30) * 60
@@ -77,8 +80,8 @@ export default function TourPage() {
     }
 
     try {
-      const endpoint = AI_WORKER_URL || '/api/quest'
-      const res = await fetch(endpoint, {
+      if (!AI_WORKER_URL) throw new Error('no worker url')
+      const res = await fetch(AI_WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -99,8 +102,10 @@ export default function TourPage() {
       if (!res.ok) throw new Error('api error')
       const data = await res.json()
       if (data.error) throw new Error(data.error)
+      setAiStatus('online')
       applyQuest(data)
     } catch {
+      setAiStatus('offline')
       const { getRandomMockQuest } = await import('@/lib/mockQuests')
       const template = getRandomMockQuest(
         tour.settings.mode,
@@ -189,8 +194,11 @@ export default function TourPage() {
             )}
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-white/40 label-chip">Resterende tijd</p>
+        <div className="text-right flex flex-col items-end gap-1">
+          <div className="flex items-center gap-1.5">
+            <AiDot status={aiStatus} />
+            <p className="text-xs text-white/40 label-chip">Resterende tijd</p>
+          </div>
           <p className={`text-xl font-black tabular-nums ${
             remainingSeconds < 120 ? 'text-rose-400' : 'gradient-text'
           }`}>
@@ -242,6 +250,26 @@ export default function TourPage() {
           🏁 Tour beëindigen
         </button>
       </div>
+    </div>
+  )
+}
+
+function AiDot({ status }: { status: 'online' | 'offline' | 'unknown' }) {
+  const cfg = {
+    online:  { color: 'bg-emerald-400', pulse: true,  label: 'AI actief' },
+    offline: { color: 'bg-rose-500',    pulse: false, label: 'Offline modus' },
+    unknown: { color: 'bg-white/20',    pulse: false, label: 'AI laden…' },
+  }[status]
+
+  return (
+    <div className="flex items-center gap-1" title={cfg.label}>
+      <div className="relative flex h-2 w-2">
+        {cfg.pulse && (
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+        )}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${cfg.color}`} />
+      </div>
+      <span className="text-[10px] text-white/30">{cfg.label}</span>
     </div>
   )
 }
