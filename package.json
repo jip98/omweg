@@ -9,13 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.5",
+    "next": "^15.3.9",
     "openai": "^4.47.1",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
