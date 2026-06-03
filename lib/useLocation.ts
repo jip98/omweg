@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-// snelweg  = >100 km/u
-// 80weg    = 80–100 km/u  (provinciale/80km wegen)
-// binnendoor = 50–80 km/u (doorgaande wegen, buiten bebouwde kom)
-// dorp     = 1–50 km/u    (bebouwde kom, dorpsstraten)
-// stilstand = 0 km/u      → niet meetellen
-export type LocationType = 'snelweg' | '80weg' | 'binnendoor' | 'dorp' | 'landelijk' | 'onbekend'
+// snelweg    = >100 km/u
+// 80weg      = 80–100 km/u  (provinciale/80km wegen)
+// binnendoor = 50–80 km/u   (doorgaande wegen, buiten bebouwde kom)
+// stad       = grote stad/town (geocode: addr.city / addr.town)
+// dorp       = 1–50 km/u of klein dorp (addr.village / addr.hamlet)
+// stilstand  = 0 km/u → niet meetellen
+export type LocationType = 'snelweg' | '80weg' | 'binnendoor' | 'stad' | 'dorp' | 'landelijk' | 'onbekend'
 
 export interface LocationContext {
   type: LocationType
@@ -36,8 +37,9 @@ function typeFromSpeed(kmh: number): LocationType | null {
 function typeFromGeocode(addr: Record<string, string>): LocationType {
   const road = addr.road?.toLowerCase() ?? ''
   if (road.includes('motorway') || road.includes('autosnelweg')) return 'snelweg'
-  if (addr.city || addr.town) return 'dorp'        // stad behandelen als dorp voor quest-logica
-  if (addr.village || addr.hamlet || addr.suburb)  return 'dorp'
+  if (addr.city)                                   return 'stad'      // grote stad
+  if (addr.town)                                   return 'stad'      // grotere kern
+  if (addr.village || addr.hamlet || addr.suburb)  return 'dorp'      // klein dorp
   if (addr.county || addr.municipality)            return 'landelijk'
   return 'onbekend'
 }
@@ -53,7 +55,8 @@ function buildDescription(
     case 'snelweg':     return `Op de snelweg${spd}`
     case '80weg':       return `Op een 80 km/u-weg${spd}`
     case 'binnendoor':  return `Binnendoor${spd}`
-    case 'dorp':        return place ? `In ${place}${spd}` : `In de bebouwde kom${spd}`
+    case 'stad':        return place ? `In de stad ${place}${spd}` : `In de stad${spd}`
+    case 'dorp':        return place ? `In het dorp ${place}${spd}` : `In een dorp${spd}`
     case 'landelijk':   return `Op het platteland${spd}`
     default:            return 'Onderweg'
   }

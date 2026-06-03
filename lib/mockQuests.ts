@@ -219,7 +219,8 @@ const LOCATION_BONUS: Record<string, QuestTemplate[]> = {
   snelweg:     HIGHWAY_QUESTS,
   '80weg':     ROAD80_QUESTS,
   binnendoor:  BINNENDOOR_QUESTS,
-  dorp:        VILLAGE_QUESTS,
+  stad:        CITY_QUESTS,   // stad = rondrijden en ontdekken, stops OK
+  dorp:        VILLAGE_QUESTS, // dorp = kort bezoek, dan door
   landelijk:   RURAL_QUESTS,
 }
 
