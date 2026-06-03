@@ -1,0 +1,16 @@
+{
+  "name": "Omweg",
+  "short_name": "Omweg",
+  "description": "Laat AI bepalen waar je uitkomt.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0c29",
+  "theme_color": "#302b63",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

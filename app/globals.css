@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-from: #0f0c29;
+  --bg-via: #302b63;
+  --bg-to: #24243e;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #7c2d12 80%, #1c0a00 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: white;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] rounded-3xl;
+  }
+
+  .glass-strong {
+    @apply bg-white/[0.14] backdrop-blur-2xl border border-white/[0.20] rounded-3xl;
+  }
+
+  .glass-card {
+    @apply glass shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold
+           rounded-2xl px-6 py-4 text-lg shadow-lg shadow-orange-900/40
+           active:scale-[0.97] transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-glass {
+    @apply glass text-white font-semibold rounded-2xl px-6 py-4 text-base
+           active:scale-[0.97] transition-all duration-150
+           hover:bg-white/[0.14];
+  }
+
+  .btn-success {
+    @apply bg-gradient-to-r from-emerald-500 to-green-400 text-white font-bold
+           rounded-2xl px-6 py-4 text-lg shadow-lg shadow-emerald-900/40
+           active:scale-[0.97] transition-all duration-150;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold
+           rounded-2xl px-5 py-3 text-base shadow-lg shadow-rose-900/40
+           active:scale-[0.97] transition-all duration-150;
+  }
+
+  .label-chip {
+    @apply text-xs font-semibold uppercase tracking-widest text-white/50;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* Scrollbar verbergen */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
