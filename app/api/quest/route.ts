@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getRandomMockQuest } from '@/lib/mockQuests'
 import { TourMode, Difficulty, StopPreference } from '@/lib/types'
