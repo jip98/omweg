@@ -5,11 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useTour } from '@/lib/tourStore'
 import QuestCard from '@/components/QuestCard'
 import { Quest, MODE_ICONS, MODE_LABELS } from '@/lib/types'
+import { useLocation } from '@/lib/useLocation'
 import Link from 'next/link'
+
+const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? ''
 
 export default function TourPage() {
   const router = useRouter()
   const { tour, hydrated, addQuest, resolveQuest, pauseTour, resumeTour, endTour } = useTour()
+  const location = useLocation()
 
   const [currentQuest, setCurrentQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(false)
@@ -73,7 +77,8 @@ export default function TourPage() {
     }
 
     try {
-      const res = await fetch('/api/quest', {
+      const endpoint = AI_WORKER_URL || '/api/quest'
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,6 +87,13 @@ export default function TourPage() {
           timeLeftMinutes,
           allowStops: tour.settings.stopPreference,
           previousTitles,
+          location: {
+            type: location.type,
+            description: location.description,
+            city: location.city,
+            village: location.village,
+            speedKmh: location.speedKmh,
+          },
         }),
       })
       if (!res.ok) throw new Error('api error')
@@ -94,7 +106,8 @@ export default function TourPage() {
         tour.settings.mode,
         tour.settings.stopPreference,
         previousTitles,
-        timeLeftMinutes
+        timeLeftMinutes,
+        location.type
       )
       applyQuest(template)
     } finally {
@@ -171,6 +184,9 @@ export default function TourPage() {
             <p className="text-sm font-bold text-white">
               {paused ? '⏸ Gepauzeerd' : `${completed} voltooid · ${tour.totalScore} punten`}
             </p>
+            {location.available && (
+              <p className="text-xs text-white/30 mt-0.5">📍 {location.description}</p>
+            )}
           </div>
         </div>
         <div className="text-right">

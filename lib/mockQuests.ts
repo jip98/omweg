@@ -1,4 +1,5 @@
 import { Quest, TourMode, StopPreference, QuestType } from './types'
+import type { LocationType } from './useLocation'
 
 type QuestTemplate = Omit<Quest, 'id' | 'createdAt' | 'status' | 'points'>
 
@@ -144,6 +145,41 @@ const CASUAL_QUESTS: QuestTemplate[] = [
   q('Pauze-plek', 'Zoek een parkje, bankje of terras om even te stoppen als dat uitkomt.', 'stop', 'Pauze genomen.', null, false),
 ]
 
+// ─── LOCATIE-SPECIFIEKE POOLS ────────────────────────────────────────────────
+
+const HIGHWAY_QUESTS: QuestTemplate[] = [
+  q('Provinciebord!', 'Rijd door totdat je een provinciebord ziet. Welke provincie komen jullie binnen?', 'spotting', 'Provinciebord gespot.'),
+  q('Vrachtwagen race', 'Tel de vrachtwagens die jullie inhalen of die jullie inhalen. Wie bereikt 5 het eerst?', 'spotting', 'Iemand heeft 5 vrachtwagens geteld.'),
+  q('Snelste kleur', 'Welke autokleur zie je het vaakst op deze snelweg? Roep ze hardop!', 'timer', 'Timer afgelopen.', 120),
+  q('Kenteken-spel', 'Bedenk een woord van de letters op het eerste kenteken dat je ziet.', 'random', 'Woord bedacht.'),
+  q('Volg de leider', 'Volg de auto voor jullie maximaal 3 minuten, zolang dit veilig blijft.', 'timer', 'Timer afgelopen of van file af.', 180),
+  q('Afrit-roulette', 'Neem de eerstvolgende afrit. Ontdek wat er te zien is en keer daarna terug of ga door.', 'direction', 'Afrit genomen.', null, false),
+]
+
+const VILLAGE_QUESTS: QuestTemplate[] = [
+  q('Dorpskerk', 'Zoek de kerk of het gemeentehuis van dit dorp. Maak een foto! Max 5 minuten stop.', 'stop', 'Foto gemaakt.', null, false),
+  q('Dorpsplein', 'Stop even op het dorpsplein als je dat veilig kunt. Bekijk de omgeving 2 minuten.', 'timer', 'Kort gestopt.', 120),
+  q('Vraag een tip', 'Stop bij een voorbijganger of winkel en vraag de mooiste tip voor de omgeving. Dan door!', 'stop', 'Tip ontvangen.', null, false),
+  q('Kleinste straatje', 'Rijd door het smalste straatje van het dorp dat je veilig kunt nemen. Dan er weer uit!', 'direction', 'Door het straatje gereden.', null, false),
+  q('Dorpsnaambord', 'Maak een selfie bij het dorpsnaambord aan de uitgang van het dorp!', 'stop', 'Selfie gemaakt.', null, false),
+]
+
+const CITY_QUESTS: QuestTemplate[] = [
+  q('Straatkunst', 'Rijd door totdat je straatkunst of graffiti ziet. Mooi of lelijk — maakt niet uit.', 'spotting', 'Straatkunst gespot.'),
+  q('Terras-stop', 'Zoek een terras of koffiebar waar je kort kunt stoppen. Max 10 minuten.', 'stop', 'Koffie of drankje gehaald.', null, false),
+  q('Fietser tellen', 'Tel de fietsers die jullie de komende 2 minuten zien. Wie telt er het meest?', 'timer', 'Timer afgelopen.', 120),
+  q('Marktplein', 'Rijd naar het centrum of marktplein van de stad. Even rondrijden en dan door.', 'direction', 'Centrum bezocht.', null, false),
+  q('Onbekende straat', 'Neem de eerstvolgende straat die jullie allebei nog nooit gehoord hebben.', 'direction', 'Onbekende straat ingeslagen.', null, false),
+]
+
+const RURAL_QUESTS: QuestTemplate[] = [
+  q('Dier in het weiland', 'Rijd totdat iemand een dier in een weiland ziet — koe, schaap, paard, alles telt.', 'spotting', 'Dier gespot.'),
+  q('Waterzoeker', 'Rijd tot je water ziet — rivier, kanaal, meer of sloot.', 'spotting', 'Water gespot.'),
+  q('Boerderij', 'Rijd totdat je een boerderij of schuur ziet. Wat verbouwen ze? Raad het!', 'spotting', 'Boerderij gespot.'),
+  q('Onverharde weg', 'Neem de eerstvolgende onverharde weg of zandpad dat je veilig op kunt. Even verkennen!', 'direction', 'Zandpad genomen.', null, false),
+  q('Horizon', 'Rijd 3 minuten in de richting van het mooiste uitzicht dat je ziet.', 'timer', 'Timer afgelopen.', 180),
+]
+
 // ─── POOLS PER MODUS ─────────────────────────────────────────────────────────
 
 const BASE_POOL = [
@@ -161,15 +197,34 @@ const POOLS: Record<string, QuestTemplate[]> = {
   cabrio:    [...CABRIO_QUESTS, ...BASE_POOL],
 }
 
+const LOCATION_BONUS: Record<string, QuestTemplate[]> = {
+  snelweg:   HIGHWAY_QUESTS,
+  dorp:      VILLAGE_QUESTS,
+  stad:      CITY_QUESTS,
+  landelijk: RURAL_QUESTS,
+}
+
 export function getRandomMockQuest(
   mode: string,
   stopPreference: StopPreference,
   previousTitles: string[],
-  timeLeftMinutes = 30
+  timeLeftMinutes = 30,
+  locationType: LocationType = 'onbekend'
 ): QuestTemplate {
   let pool = POOLS[mode] ?? BASE_POOL
 
+  // Voeg locatie-specifieke quests toe (50% kans om er een te trekken)
+  const locationPool = LOCATION_BONUS[locationType] ?? []
+  if (locationPool.length > 0 && Math.random() < 0.5) {
+    pool = [...locationPool, ...pool]
+  }
+
   if (stopPreference === 'geen') {
+    pool = pool.filter(q => q.type !== 'stop')
+  }
+
+  // Op de snelweg: geen stop-opdrachten (te gevaarlijk)
+  if (locationType === 'snelweg') {
     pool = pool.filter(q => q.type !== 'stop')
   }
 
