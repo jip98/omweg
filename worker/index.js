@@ -5,11 +5,12 @@ Regels:
 - NOOIT: te hard rijden, gevaarlijk inhalen, telefoon voor bestuurder, illegaal parkeren.
 - Schrijf in het Nederlands.
 
-LOCATIEBEWUST — pas de opdracht aan op de omgeving:
-- Op de SNELWEG: geen stops, focus op spotten (auto's, borden, vrachtwagens), timer-quests, provincieborden, "volg de auto voor je". Geen korte stoptijden want dat is gevaarlijk.
-- In de STAD: korte sightseeing-stops (max 10 min), "zoek een terras", "rij door de hoofdstraat", historische gebouwen, korte wandeling. Geen lange rijtijden want er zijn veel stoplichten.
-- In een DORP: stop-opdrachten maar KORT (max 5-10 min, niet te lang in het dorp hangen), "foto van het dorpsplein", "zoek de kerk of het gemeentehuis", "vraag iemand om een tip". Daarna weer door.
-- Op het PLATTELAND: natuur-spotten (dieren, water, molens, boerderijen), rustige wegen, "rijd tot je een brug ziet", landelijke avonturen.
+LOCATIEBEWUST — pas de opdracht aan op de snelheid/omgeving:
+- SNELWEG (>100 km/u): NOOIT stoppen. Focus op spotten (auto's, vrachtwagens, provincieborden, kentekenspelletjes), timer-quests, "volg de auto voor je". Alles rijdend.
+- 80-WEG (80–100 km/u): Geen stops, maar wel afslagen nemen, provinciale wegen verkennen, plaatsnamen raden. Rustigere snelwegvibe.
+- BINNENDOOR (50–80 km/u): Korte stops mogen (bakker, park, buurtwinkel). Stoplichten, doorgaande wegen. Luchtig en snel.
+- DORP/STAD (<50 km/u): Stop-opdrachten maar KORT (max 5–10 min, niet te lang hangen). Dorpsplein, kerk, smalste straatje, selfie bij bord. Dan weer door.
+- PLATTELAND (geocode, geen snelheid): Natuur-spotten, dieren, water, boerderijen, onverharde wegen.
 
 RICHTINGSCOMPONENT (verplicht bij niet-stop opdrachten):
 Voeg na de hoofdopdracht op een nieuwe regel een concrete vervolgrichting toe, bijv:
@@ -50,11 +51,12 @@ ${speedInfo}
 ${placeInfo}
 
 Pas de opdracht aan op deze locatie. ${
-  locationType === 'snelweg' ? 'De bestuurder rijdt snel op de snelweg — geen stops, geen gevaarlijke manoeuvres.' :
-  locationType === 'dorp' ? 'Je bent in een dorp — geef een korte stop-opdracht of sightseeing-tip, maar niet te lang blijven.' :
-  locationType === 'stad' ? 'Je bent in de stad — stoplichten en parkeren is mogelijk, geef stedelijke opdrachten.' :
-  locationType === 'landelijk' ? 'Je rijdt op het platteland — natuur en rustige wegen staan centraal.' :
-  'Geef een algemene opdracht.'
+  locationType === 'snelweg'    ? 'Snelweg (>100 km/u) — GEEN stops, alleen rijdende opdrachten.' :
+  locationType === '80weg'      ? '80 km/u-weg (80–100 km/u) — geen stops, wel afslagen/provinciale wegen verkennen.' :
+  locationType === 'binnendoor' ? 'Binnendoor (50–80 km/u) — korte stops mogen, stoplichten en buurtstraten.' :
+  locationType === 'dorp'       ? 'Dorp/stad (<50 km/u) — stop-opdrachten OK maar KORT, max 5–10 minuten, dan weer door.' :
+  locationType === 'landelijk'  ? 'Platteland — natuur, dieren, boerderijen, onverharde wegen.' :
+  'Locatie onbekend — geef een algemene rijdopdracht.'
 }`
 }
 

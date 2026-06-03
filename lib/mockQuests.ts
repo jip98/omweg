@@ -180,6 +180,24 @@ const RURAL_QUESTS: QuestTemplate[] = [
   q('Horizon', 'Rijd 3 minuten in de richting van het mooiste uitzicht dat je ziet.', 'timer', 'Timer afgelopen.', 180),
 ]
 
+// 80-wegen: provinciale wegen, buiten bebouwde kom, mag iets meer dan snelweg
+const ROAD80_QUESTS: QuestTemplate[] = [
+  q('Provinciale weg', 'Rijd tot je een provinciale-wegbord (N-nummer) ziet. Welk nummer is het?', 'spotting', 'N-wegbord gespot.'),
+  q('Tankstation afrit', 'Neem de eerstvolgende afrit met een tankstation. Even stoppen en dan door!', 'spotting', 'Tankstation gevonden.'),
+  q('Plaatsnaambord', 'Rijd tot je een plaatsnaambord ziet dat niemand kent. Dat is jullie volgende richting.', 'spotting', 'Onbekend dorp gevonden.'),
+  q('Filewatcher', 'Zie je tegenliggers vertragen? Volg 2 minuten de weg en kijk wat er verandert.', 'timer', 'Timer afgelopen.', 120),
+  q('Bomenrij', 'Rijd tot je een weg met bomen aan beide kanten ziet. Neem die richting!', 'spotting', 'Bomenrij gevonden.'),
+]
+
+// Binnendoor: 50-80 km/u, doorgaande wegen door dorpen/stad, korte stops ok
+const BINNENDOOR_QUESTS: QuestTemplate[] = [
+  q('Bakker of slager', 'Rijd tot je een bakker, slager of kaaswinkel ziet. Stop even als je kunt!', 'spotting', 'Winkel gespot.'),
+  q('Verkeersdrempel', 'Tel de verkeersdrempels of wegversmallingen die jullie de komende 2 minuten tegenkomen.', 'timer', 'Timer afgelopen.', 120),
+  q('Stoplicht-route', 'Volg bij het volgende stoplicht de richting die het minst voor de hand ligt.', 'direction', 'Onverwachte richting gekozen.', null, false),
+  q('Buurtsuper', 'Zoek een kleine supermarkt of buurtwinkel. Stop kort als je iets nodig hebt.', 'spotting', 'Buurtwinkel gespot.'),
+  q('Speeltuin of park', 'Rijd totdat je een speeltuin, park of groene plek ziet.', 'spotting', 'Groene plek gespot.'),
+]
+
 // ─── POOLS PER MODUS ─────────────────────────────────────────────────────────
 
 const BASE_POOL = [
@@ -198,10 +216,11 @@ const POOLS: Record<string, QuestTemplate[]> = {
 }
 
 const LOCATION_BONUS: Record<string, QuestTemplate[]> = {
-  snelweg:   HIGHWAY_QUESTS,
-  dorp:      VILLAGE_QUESTS,
-  stad:      CITY_QUESTS,
-  landelijk: RURAL_QUESTS,
+  snelweg:     HIGHWAY_QUESTS,
+  '80weg':     ROAD80_QUESTS,
+  binnendoor:  BINNENDOOR_QUESTS,
+  dorp:        VILLAGE_QUESTS,
+  landelijk:   RURAL_QUESTS,
 }
 
 export function getRandomMockQuest(
@@ -223,8 +242,8 @@ export function getRandomMockQuest(
     pool = pool.filter(q => q.type !== 'stop')
   }
 
-  // Op de snelweg: geen stop-opdrachten (te gevaarlijk)
-  if (locationType === 'snelweg') {
+  // Op snelweg en 80-weg: geen stop-opdrachten
+  if (locationType === 'snelweg' || locationType === '80weg') {
     pool = pool.filter(q => q.type !== 'stop')
   }
 

@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-export type LocationType = 'snelweg' | 'stad' | 'dorp' | 'landelijk' | 'onbekend'
+// snelweg  = >100 km/u
+// 80weg    = 80–100 km/u  (provinciale/80km wegen)
+// binnendoor = 50–80 km/u (doorgaande wegen, buiten bebouwde kom)
+// dorp     = 1–50 km/u    (bebouwde kom, dorpsstraten)
+// stilstand = 0 km/u      → niet meetellen
+export type LocationType = 'snelweg' | '80weg' | 'binnendoor' | 'dorp' | 'landelijk' | 'onbekend'
 
 export interface LocationContext {
   type: LocationType
@@ -20,27 +25,37 @@ const DEFAULT: LocationContext = {
   available: false,
 }
 
-function detectType(addr: Record<string, string>, speedKmh?: number): LocationType {
-  const road = addr.road?.toLowerCase() ?? ''
-  const isHighwayRoad = road.includes('motorway') || road.includes('autosnelweg') || road.includes('snelweg')
+function typeFromSpeed(kmh: number): LocationType | null {
+  if (kmh === 0) return null      // stilstaan — niet meetellen
+  if (kmh > 100) return 'snelweg'
+  if (kmh > 80)  return '80weg'
+  if (kmh > 50)  return 'binnendoor'
+  return 'dorp'
+}
 
-  if (speedKmh && speedKmh > 85) return 'snelweg'
-  if (isHighwayRoad) return 'snelweg'
-  if (addr.city || addr.town) return 'stad'
-  if (addr.village || addr.hamlet || addr.suburb) return 'dorp'
-  if (addr.county || addr.municipality) return 'landelijk'
+function typeFromGeocode(addr: Record<string, string>): LocationType {
+  const road = addr.road?.toLowerCase() ?? ''
+  if (road.includes('motorway') || road.includes('autosnelweg')) return 'snelweg'
+  if (addr.city || addr.town) return 'dorp'        // stad behandelen als dorp voor quest-logica
+  if (addr.village || addr.hamlet || addr.suburb)  return 'dorp'
+  if (addr.county || addr.municipality)            return 'landelijk'
   return 'onbekend'
 }
 
-function buildDescription(type: LocationType, addr: Record<string, string>, speedKmh?: number): string {
+function buildDescription(
+  type: LocationType,
+  addr: Record<string, string>,
+  speedKmh?: number
+): string {
   const place = addr.city || addr.town || addr.village || addr.hamlet
-  const speed = speedKmh ? ` (~${speedKmh} km/u)` : ''
+  const spd   = speedKmh ? ` (~${speedKmh} km/u)` : ''
   switch (type) {
-    case 'snelweg': return `Op de snelweg${speed}`
-    case 'stad':    return `In de stad${place ? ` ${place}` : ''}${speed}`
-    case 'dorp':    return `In het dorp${place ? ` ${place}` : ''}${speed}`
-    case 'landelijk': return `Op het platteland${speed}`
-    default:        return 'Onderweg'
+    case 'snelweg':     return `Op de snelweg${spd}`
+    case '80weg':       return `Op een 80 km/u-weg${spd}`
+    case 'binnendoor':  return `Binnendoor${spd}`
+    case 'dorp':        return place ? `In ${place}${spd}` : `In de bebouwde kom${spd}`
+    case 'landelijk':   return `Op het platteland${spd}`
+    default:            return 'Onderweg'
   }
 }
 
@@ -56,18 +71,25 @@ export function useLocation(): LocationContext {
         const { latitude, longitude, speed } = pos.coords
         const speedKmh = speed != null ? Math.round(speed * 3.6) : undefined
 
-        // Snelheid-detectie werkt ook zonder geocoding
-        if (speedKmh && speedKmh > 85) {
-          setCtx(prev => ({
-            ...prev,
-            type: 'snelweg',
-            speedKmh,
-            description: `Op de snelweg (~${speedKmh} km/u)`,
-            available: true,
-          }))
+        // Snelheidsdetectie — werkt zonder geocoding, maar sla stilstand over
+        if (speedKmh != null) {
+          const speedType = typeFromSpeed(speedKmh)
+          if (speedType !== null) {
+            setCtx(prev => ({
+              ...prev,
+              type: speedType,
+              speedKmh,
+              description: buildDescription(speedType, {}, speedKmh),
+              available: true,
+            }))
+          }
+          // Bij stilstand (0 km/u): type NIET updaten, alleen speedKmh bijwerken
+          if (speedKmh === 0) {
+            setCtx(prev => ({ ...prev, speedKmh: 0, available: true }))
+          }
         }
 
-        // Geocode max 1× per 30 seconden om rate limit te vermijden
+        // Geocode max 1× per 30 seconden
         const now = Date.now()
         if (now - lastGeocode.current < 30_000) return
         lastGeocode.current = now
@@ -75,33 +97,30 @@ export function useLocation(): LocationContext {
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=nl`,
-            { headers: { 'User-Agent': 'Omweg-RoadtripGame/1.0 (contact@jipdegroot.nl)' } }
+            { headers: { 'User-Agent': 'Omweg-RoadtripGame/1.0' } }
           )
           const data = await res.json()
           const addr: Record<string, string> = data.address || {}
 
-          const type = detectType(addr, speedKmh)
-          const description = buildDescription(type, addr, speedKmh)
+          // Snelheid heeft voorrang; geocoding vult aan als snelheid onbekend is
+          const finalType = (speedKmh != null && speedKmh > 0)
+            ? (typeFromSpeed(speedKmh) ?? typeFromGeocode(addr))
+            : typeFromGeocode(addr)
 
           setCtx({
-            type,
+            type: finalType,
             city: addr.city || addr.town,
             village: addr.village || addr.hamlet,
             road: addr.road,
             speedKmh,
-            description,
+            description: buildDescription(finalType, addr, speedKmh ?? undefined),
             available: true,
           })
         } catch {
-          // Geocode mislukt — behoud snelheidsdetectie
-          setCtx(prev => ({
-            ...prev,
-            speedKmh,
-            available: true,
-          }))
+          setCtx(prev => ({ ...prev, speedKmh, available: true }))
         }
       },
-      () => { /* GPS geweigerd of niet beschikbaar */ },
+      () => { /* GPS geweigerd */ },
       { enableHighAccuracy: true, maximumAge: 15_000, timeout: 10_000 }
     )
 
