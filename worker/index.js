@@ -5,16 +5,22 @@ Regels:
 - NOOIT: te hard rijden, gevaarlijk inhalen, telefoon voor bestuurder, illegaal parkeren.
 - Schrijf in het Nederlands.
 
-LOCATIEBEWUST — pas de opdracht aan op de snelheid/omgeving:
-- SNELWEG (>100 km/u): NOOIT stoppen. Focus op spotten (auto's, vrachtwagens, provincieborden, kentekenspelletjes), timer-quests, "volg de auto voor je". Alles rijdend.
-- 80-WEG (80–100 km/u): Geen stops, maar wel afslagen nemen, provinciale wegen verkennen, plaatsnamen raden. Rustigere snelwegvibe.
-- BINNENDOOR (50–80 km/u): Korte stops mogen (bakker, park, buurtwinkel). Stoplichten, doorgaande wegen. Luchtig en snel.
-- DORP/STAD (<50 km/u): Stop-opdrachten maar KORT (max 5–10 min, niet te lang hangen). Dorpsplein, kerk, smalste straatje, selfie bij bord. Dan weer door.
-- PLATTELAND (geocode, geen snelheid): Natuur-spotten, dieren, water, boerderijen, onverharde wegen.
+VERDELING OPDRACHTTYPES (houd je hier strikt aan):
+- 40% spotten: iets zien tijdens het rijden (kleur auto, bord, gebouw, dier)
+- 30% richting/keuze: links, rechts, afslag, rustigste weg
+- 20% timer: rijd X minuten ergens naartoe
+- max 10% stop/doe: fysiek uitstappen of stoppen — dus slechts 1 op de 10 opdrachten
+Stop-opdrachten zijn het minst geschikt tijdens het rijden; gebruik ze spaarzaam.
+
+LOCATIEBEWUST:
+- SNELWEG (>100 km/u): NOOIT stoppen. Alleen spotten, timer, richting.
+- 80-WEG (80–100 km/u): Geen stops. Afslagen, provincieborden, plaatsnamen raden.
+- BINNENDOOR (50–80 km/u): Zelden een stop (max 1 op 5). Voornamelijk spotten en richting.
+- DORP/STAD (<50 km/u): Stop mag, maar KORT (max 5 min). Daarna meteen weer door.
+- PLATTELAND: Natuur-spotten, dieren, water, boerderijen. Zelden stoppen.
 
 RICHTINGSCOMPONENT (verplicht bij niet-stop opdrachten):
-Voeg na de hoofdopdracht op een nieuwe regel een concrete vervolgrichting toe, bijv:
-"Daarna neem je bij de eerstvolgende veilige mogelijkheid links."
+Voeg na de hoofdopdracht op een nieuwe regel een concrete vervolgrichting toe.
 
 Geef je antwoord ALLEEN als geldig JSON:
 {

@@ -20,9 +20,21 @@ export default function TourPage() {
   const [timerRunning, setTimerRunning] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [aiEnabled, setAiEnabled] = useState<boolean>(() => {
+    if (!AI_WORKER_URL) return false
+    try { return localStorage.getItem('omweg_ai_enabled') !== 'false' } catch { return true }
+  })
   const [aiStatus, setAiStatus] = useState<'online' | 'offline' | 'unknown'>(
     AI_WORKER_URL ? 'unknown' : 'offline'
   )
+
+  function toggleAi() {
+    if (!AI_WORKER_URL) return
+    const next = !aiEnabled
+    setAiEnabled(next)
+    setAiStatus(next ? 'unknown' : 'offline')
+    try { localStorage.setItem('omweg_ai_enabled', String(next)) } catch {}
+  }
   const loadedRef = useRef(false)
 
   const durationSeconds = (tour?.settings.duration ?? 30) * 60
@@ -80,7 +92,7 @@ export default function TourPage() {
     }
 
     try {
-      if (!AI_WORKER_URL) throw new Error('no worker url')
+      if (!AI_WORKER_URL || !aiEnabled) throw new Error('ai disabled')
       const res = await fetch(AI_WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,7 +130,7 @@ export default function TourPage() {
     } finally {
       setLoading(false)
     }
-  }, [tour, elapsedSeconds, durationSeconds, addQuest])
+  }, [tour, elapsedSeconds, durationSeconds, addQuest, aiEnabled, location.type]) // eslint-disable-line
 
   useEffect(() => {
     if (tour && !loadedRef.current) {
@@ -196,7 +208,7 @@ export default function TourPage() {
         </div>
         <div className="text-right flex flex-col items-end gap-1">
           <div className="flex items-center gap-1.5">
-            <AiDot status={aiStatus} />
+            <AiDot status={aiEnabled ? aiStatus : 'disabled'} onToggle={AI_WORKER_URL ? toggleAi : undefined} />
             <p className="text-xs text-white/40 label-chip">Resterende tijd</p>
           </div>
           <p className={`text-xl font-black tabular-nums ${
@@ -254,15 +266,19 @@ export default function TourPage() {
   )
 }
 
-function AiDot({ status }: { status: 'online' | 'offline' | 'unknown' }) {
+function AiDot({ status, onToggle }: {
+  status: 'online' | 'offline' | 'unknown' | 'disabled'
+  onToggle?: () => void
+}) {
   const cfg = {
-    online:  { color: 'bg-emerald-400', pulse: true,  label: 'AI actief' },
-    offline: { color: 'bg-rose-500',    pulse: false, label: 'Offline modus' },
-    unknown: { color: 'bg-white/20',    pulse: false, label: 'AI laden…' },
+    online:   { color: 'bg-emerald-400', pulse: true,  label: 'AI actief' },
+    offline:  { color: 'bg-rose-500',    pulse: false, label: 'AI fout' },
+    unknown:  { color: 'bg-amber-400',   pulse: false, label: 'AI laden…' },
+    disabled: { color: 'bg-white/20',    pulse: false, label: 'AI uit' },
   }[status]
 
-  return (
-    <div className="flex items-center gap-1" title={cfg.label}>
+  const el = (
+    <div className="flex items-center gap-1">
       <div className="relative flex h-2 w-2">
         {cfg.pulse && (
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
@@ -271,5 +287,17 @@ function AiDot({ status }: { status: 'online' | 'offline' | 'unknown' }) {
       </div>
       <span className="text-[10px] text-white/30">{cfg.label}</span>
     </div>
+  )
+
+  if (!onToggle) return el
+
+  return (
+    <button
+      onClick={onToggle}
+      title={status === 'disabled' ? 'AI inschakelen' : 'AI uitschakelen'}
+      className="flex items-center gap-1 active:scale-90 transition-transform"
+    >
+      {el}
+    </button>
   )
 }
