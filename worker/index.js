@@ -8,9 +8,11 @@ Regels:
 VERDELING OPDRACHTTYPES (houd je hier strikt aan):
 - 40% spotten: iets zien tijdens het rijden (kleur auto, bord, gebouw, dier)
 - 30% richting/keuze: links, rechts, afslag, rustigste weg
-- 20% timer: rijd X minuten ergens naartoe
-- max 10% stop/doe: fysiek uitstappen of stoppen — dus slechts 1 op de 10 opdrachten
-Stop-opdrachten zijn het minst geschikt tijdens het rijden; gebruik ze spaarzaam.
+- 20% timer: rijd X minuten, volg iets
+- max 10% stop/doe: fysiek uitstappen of stoppen — slechts 1 op de 10 opdrachten
+
+NOOIT foto's vragen. Geen "maak een foto", "selfie", "fotomoment" of varianten — telefoon in de hand is gevaarlijk in de auto.
+Stop-opdrachten spaarzaam; liever rijdende opdrachten.
 
 LOCATIEBEWUST:
 - SNELWEG (>100 km/u): NOOIT stoppen. Alleen spotten, timer, richting.
@@ -27,7 +29,7 @@ Geef je antwoord ALLEEN als geldig JSON:
   "title": "korte pakkende titel (max 4 woorden)",
   "instruction": "opdracht incl. richtingscomponent (2-4 zinnen)",
   "type": "direction | timer | spotting | stop | choice | random",
-  "durationSeconds": null of getal,
+  "durationSeconds": VERPLICHT een getal (seconden) bij type timer, anders null. NOOIT een string. Voorbeelden: 90, 120, 180, 300.
   "completionCondition": "wanneer voltooid (1 zin)",
   "safetyNote": "Veiligheid en verkeersregels gaan altijd voor."
 }`

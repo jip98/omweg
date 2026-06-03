@@ -72,23 +72,31 @@ export default function TourPage() {
 
     const applyQuest = (data: {
       title?: string; instruction?: string; type?: string;
-      durationSeconds?: number | null; completionCondition?: string
+      durationSeconds?: number | string | null; completionCondition?: string
     }) => {
-      let dur = data.durationSeconds ?? null
+      const questType = (data.type ?? 'random') as Quest['type']
+
+      // Robuust parsen — AI kan string of null teruggeven
+      let dur: number | null = null
+      if (data.durationSeconds != null && data.durationSeconds !== '') {
+        const parsed = Number(data.durationSeconds)
+        if (!isNaN(parsed) && parsed > 0) dur = parsed
+      }
+      // Timer-quest zonder duur krijgt een sensible default
+      if (questType === 'timer' && !dur) dur = 180
       if (dur && dur > maxTimerSecs) dur = maxTimerSecs
 
       const quest = addQuest({
         title: data.title ?? 'Nieuwe opdracht',
         instruction: data.instruction ?? '...',
-        type: (data.type ?? 'random') as Quest['type'],
+        type: questType,
         durationSeconds: dur,
         completionCondition: data.completionCondition ?? '',
         safetyNote: 'Veiligheid en verkeersregels gaan altijd voor.',
       })
       setCurrentQuest(quest)
-      if (quest.type === 'timer' && quest.durationSeconds) {
-        setTimeout(() => setTimerRunning(true), 50)
-      }
+      // Timer start NIET automatisch — gebruiker tikt op "Start" in de QuestCard
+      setTimerRunning(false)
     }
 
     try {
@@ -238,6 +246,7 @@ export default function TourPage() {
           quest={currentQuest}
           timerRunning={timerRunning && !paused}
           onTimerComplete={handleComplete}
+          onStartTimer={() => setTimerRunning(true)}
           onComplete={handleComplete}
           onSkip={handleSkip}
           onNew={handleNew}

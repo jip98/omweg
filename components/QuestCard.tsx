@@ -13,7 +13,6 @@ const TYPE_CONFIG: Record<QuestType, { icon: string; label: string; color: strin
   random:    { icon: '⚡', label: 'Wild',      color: 'from-yellow-500/30 to-amber-500/20' },
 }
 
-// Verwerk **vet** tekst en splits op \n\n voor richting-sectie
 function renderInstruction(raw: string) {
   const [mainPart, directionPart] = raw.split('\n\n')
 
@@ -51,6 +50,7 @@ interface QuestCardProps {
   quest: Quest
   timerRunning: boolean
   onTimerComplete?: () => void
+  onStartTimer?: () => void
   onComplete: () => void
   onSkip: () => void
   onNew: () => void
@@ -59,10 +59,11 @@ interface QuestCardProps {
 }
 
 export default function QuestCard({
-  quest, timerRunning, onTimerComplete,
+  quest, timerRunning, onTimerComplete, onStartTimer,
   onComplete, onSkip, onNew, onPause, loading,
 }: QuestCardProps) {
   const config = TYPE_CONFIG[quest.type]
+  const hasTimer = quest.type === 'timer' && !!quest.durationSeconds
 
   return (
     <div className="flex flex-col gap-4 animate-slide-up">
@@ -78,12 +79,25 @@ export default function QuestCard({
 
         {renderInstruction(quest.instruction)}
 
-        {quest.type === 'timer' && quest.durationSeconds && (
-          <TimerDisplay
-            totalSeconds={quest.durationSeconds}
-            running={timerRunning}
-            onComplete={onTimerComplete}
-          />
+        {hasTimer && (
+          <div className="flex flex-col gap-3">
+            <TimerDisplay
+              totalSeconds={quest.durationSeconds!}
+              running={timerRunning}
+              onComplete={onTimerComplete}
+            />
+            {/* Start-knop: alleen tonen als timer nog niet loopt */}
+            {!timerRunning && onStartTimer && (
+              <button
+                onClick={onStartTimer}
+                className="w-full bg-amber-500/30 hover:bg-amber-500/50 border border-amber-400/40
+                           text-amber-200 font-bold rounded-2xl py-3 text-base
+                           active:scale-[0.97] transition-all"
+              >
+                ▶ Start timer
+              </button>
+            )}
+          </div>
         )}
 
         {quest.completionCondition && (

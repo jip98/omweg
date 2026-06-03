@@ -82,7 +82,7 @@ const SPOTTING_QUESTS: QuestTemplate[] = [
 // ─── STOPS ───────────────────────────────────────────────────────────────────
 const STOP_QUESTS: QuestTemplate[] = [
   q('Koffie!', 'Zoek een plek waar je koffie kunt halen. Tankstation, bakker, café — alles mag.', 'stop', 'Koffie gevonden.', null, false),
-  q('Mooie plek', 'Stop bij de eerste plek die mooi, bijzonder of raar genoeg is om even te parkeren. Maak een foto!', 'stop', 'Veilig gestopt.', null, false),
+  q('Mooie plek', 'Stop bij de eerste plek die mooi, bijzonder of raar genoeg is om even te parkeren. Geniet even van het uitzicht.', 'stop', 'Veilig gestopt.', null, false),
   q('Dorpskern', 'Rijd richting het eerste plaatsnaambord dat je ziet. Stop even in het dorp.', 'stop', 'Gestopt in het dorp.', null, false),
 ]
 
@@ -133,7 +133,7 @@ const DATE_QUESTS: QuestTemplate[] = [
   q('Verrassingsplek', 'Stop bij de volgende mooie of romantische plek die je veilig kunt bereiken. Maak er iets van.', 'stop', 'Samen gestopt op een mooie plek.', null, false),
   q('Zonsondergang zoeken', 'Rijd richting de ondergaande zon. Kies de weg met het mooiste uitzicht.', 'direction', 'Mooi uitzicht gevonden.', null, false),
   q('Geheimzinnig dorp', 'Rijdt naar het kleinste dorp dat jullie op een bord zien. Ontdek iets leuks.', 'spotting', 'Klein dorp bezocht.'),
-  q('Foto samen', 'Stop op een plek die jullie allebei mooi vinden en maak een foto samen. +2 punten!', 'stop', 'Foto gemaakt.', null, false),
+  q('Verrassingsplek', 'Stop op een plek die jullie allebei mooi vinden. Stap even uit en geniet. +2 punten!', 'stop', 'Mooi plekje gevonden.', null, false),
   q('Rustmoment', 'Zoek een stille, mooie plek om 5 minuten te stoppen. Zet de motor uit en geniet.', 'timer', 'Rustmoment genomen.', 300),
 ]
 
@@ -157,11 +157,11 @@ const HIGHWAY_QUESTS: QuestTemplate[] = [
 ]
 
 const VILLAGE_QUESTS: QuestTemplate[] = [
-  q('Dorpskerk', 'Zoek de kerk of het gemeentehuis van dit dorp. Maak een foto! Max 5 minuten stop.', 'stop', 'Foto gemaakt.', null, false),
+  q('Dorpskerk', 'Zoek de kerk of het gemeentehuis van dit dorp. Stap even uit en kijk rond — max 5 minuten.', 'stop', 'Kerk of gemeentehuis gevonden.', null, false),
   q('Dorpsplein', 'Stop even op het dorpsplein als je dat veilig kunt. Bekijk de omgeving 2 minuten.', 'timer', 'Kort gestopt.', 120),
   q('Vraag een tip', 'Stop bij een voorbijganger of winkel en vraag de mooiste tip voor de omgeving. Dan door!', 'stop', 'Tip ontvangen.', null, false),
   q('Kleinste straatje', 'Rijd door het smalste straatje van het dorp dat je veilig kunt nemen. Dan er weer uit!', 'direction', 'Door het straatje gereden.', null, false),
-  q('Dorpsnaambord', 'Maak een selfie bij het dorpsnaambord aan de uitgang van het dorp!', 'stop', 'Selfie gemaakt.', null, false),
+  q('Dorpsnaambord', 'Stop bij het dorpsnaambord aan de uitgang van het dorp. Even uitstappen en rondkijken!', 'stop', 'Dorpsnaambord gevonden.', null, false),
 ]
 
 const CITY_QUESTS: QuestTemplate[] = [
