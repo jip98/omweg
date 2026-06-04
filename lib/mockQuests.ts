@@ -27,23 +27,18 @@ const AFTER_STOP_SUFFIXES = [
   'Kies daarna de **rustigste weg** die je kunt vinden.',
 ]
 
-// Na een richtingsopdracht: je hebt de bocht genomen — nu?
-const AFTER_DIRECTION_SUFFIXES = [
-  'Rijd daarna **rechtdoor** tot je een kruising ziet.',
-  'Daarna neem je bij de volgende kruising weer **rechts**.',
-  'Daarna neem je bij de volgende kruising weer **links**.',
-  'Rijd daarna **3 minuten** door op deze weg.',
-  'Daarna volg je de weg die er het **smalst** uitziet.',
-]
-
 export function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-/** Geef een verse willekeurige vervolgrichting op basis van quest-type */
+/**
+ * Geef een verse willekeurige vervolgrichting op basis van quest-type.
+ * Richting-opdrachten zijn zélf al een richting → géén tweede richting erachter
+ * (anders krijg je "neem rechts ... daarna links").
+ */
 export function freshSuffix(type: QuestType): string {
+  if (type === 'direction') return ''            // geen dubbele richting
   if (type === 'stop')      return pick(AFTER_STOP_SUFFIXES)
-  if (type === 'direction') return pick(AFTER_DIRECTION_SUFFIXES)
   return pick(DIRECTION_SUFFIXES)
 }
 
@@ -54,15 +49,8 @@ function q(
   completionCondition: string,
   durationSeconds: number | null = null,
 ): QuestTemplate {
-  let suffix: string
-  if (type === 'stop') {
-    suffix = pick(AFTER_STOP_SUFFIXES)
-  } else if (type === 'direction') {
-    suffix = pick(AFTER_DIRECTION_SUFFIXES)
-  } else {
-    suffix = pick(DIRECTION_SUFFIXES)
-  }
-  const instruction = `${base}\n\n${suffix}`
+  const suffix = freshSuffix(type)
+  const instruction = suffix ? `${base}\n\n${suffix}` : base
   return { title, instruction, type, durationSeconds, completionCondition, safetyNote: 'Veiligheid en verkeersregels gaan altijd voor.' }
 }
 
@@ -300,7 +288,7 @@ export function getRandomMockQuest(
   // Splits de pool en geef niet-stops veruit de voorkeur.
   const nonStops = pool.filter(q => q.type !== 'stop')
   const stops = pool.filter(q => q.type === 'stop')
-  const wantStop = stops.length > 0 && nonStops.length > 0 && Math.random() < 0.12
+  const wantStop = stops.length > 0 && nonStops.length > 0 && Math.random() < 0.05
   let candidatePool = wantStop ? stops : (nonStops.length > 0 ? nonStops : pool)
 
   const unused = candidatePool.filter(q => !previousTitles.includes(q.title))
@@ -314,16 +302,9 @@ export function getRandomMockQuest(
     return { ...template, durationSeconds: mins * 60 }
   }
 
-  // Elke instantie krijgt een verse richting-suffix (q() heeft er al één,
-  // maar hier verversen we hem zodat hij niet altijd hetzelfde is)
+  // Elke instantie krijgt een verse vervolgrichting (richting-quests krijgen er géén,
+  // want die zijn zelf al een richting).
   const basePart = template.instruction.split('\n\n')[0]
-  let freshSuffix: string
-  if (template.type === 'stop') {
-    freshSuffix = pick(AFTER_STOP_SUFFIXES)
-  } else if (template.type === 'direction') {
-    freshSuffix = pick(AFTER_DIRECTION_SUFFIXES)
-  } else {
-    freshSuffix = pick(DIRECTION_SUFFIXES)
-  }
-  return { ...template, instruction: `${basePart}\n\n${freshSuffix}` }
+  const suffix = freshSuffix(template.type)
+  return { ...template, instruction: suffix ? `${basePart}\n\n${suffix}` : basePart }
 }
