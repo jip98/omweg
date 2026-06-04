@@ -6,6 +6,7 @@ import { useTour } from '@/lib/tourStore'
 import QuestCard from '@/components/QuestCard'
 import { Quest, MODE_ICONS, MODE_LABELS } from '@/lib/types'
 import { useLocation } from '@/lib/useLocation'
+import { useSpeech } from '@/lib/useSpeech'
 import { freshSuffix } from '@/lib/mockQuests'
 import Link from 'next/link'
 
@@ -15,6 +16,7 @@ export default function TourPage() {
   const router = useRouter()
   const { tour, hydrated, addQuest, resolveQuest, pauseTour, resumeTour, endTour } = useTour()
   const location = useLocation()
+  const speech = useSpeech()
 
   const [currentQuest, setCurrentQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(false)
@@ -119,8 +121,11 @@ export default function TourPage() {
         safetyNote: 'Veiligheid en verkeersregels gaan altijd voor.',
       })
       setCurrentQuest(quest)
-      // Timer start NIET automatisch — gebruiker tikt op "Start" in de QuestCard
       setTimerStarted(false)
+
+      // Lees de opdracht voor (alleen de hoofdtekst, zonder richting-suffix)
+      const mainText = instruction.split('\n\n')[0]
+      speech.speak(`${quest.title}. ${mainText}`)
     }
 
     // Mix: ~30% kans op offline quest, ook als AI aan is — voor afwisseling
@@ -165,7 +170,7 @@ export default function TourPage() {
     } finally {
       setLoading(false)
     }
-  }, [tour, elapsedSeconds, durationSeconds, addQuest, aiEnabled, location.type]) // eslint-disable-line
+  }, [tour, elapsedSeconds, durationSeconds, addQuest, aiEnabled, location.type, speech.speak]) // eslint-disable-line
 
   useEffect(() => {
     if (tour && !loadedRef.current) {
@@ -242,7 +247,16 @@ export default function TourPage() {
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            {speech.supported && (
+              <button
+                onClick={speech.toggle}
+                title={speech.enabled ? 'Spraak uitschakelen' : 'Spraak inschakelen'}
+                className="text-base active:scale-90 transition-transform"
+              >
+                {speech.enabled ? '🔊' : '🔇'}
+              </button>
+            )}
             <AiDot status={aiEnabled ? aiStatus : 'disabled'} onToggle={AI_WORKER_URL ? toggleAi : undefined} />
             <p className="text-xs text-white/40 label-chip">Resterende tijd</p>
           </div>
