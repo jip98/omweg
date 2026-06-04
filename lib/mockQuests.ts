@@ -36,8 +36,15 @@ const AFTER_DIRECTION_SUFFIXES = [
   'Daarna volg je de weg die er het **smalst** uitziet.',
 ]
 
-function pick<T>(arr: T[]): T {
+export function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
+}
+
+/** Geef een verse willekeurige vervolgrichting op basis van quest-type */
+export function freshSuffix(type: QuestType): string {
+  if (type === 'stop')      return pick(AFTER_STOP_SUFFIXES)
+  if (type === 'direction') return pick(AFTER_DIRECTION_SUFFIXES)
+  return pick(DIRECTION_SUFFIXES)
 }
 
 function q(

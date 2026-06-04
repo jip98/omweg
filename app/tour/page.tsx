@@ -6,6 +6,7 @@ import { useTour } from '@/lib/tourStore'
 import QuestCard from '@/components/QuestCard'
 import { Quest, MODE_ICONS, MODE_LABELS } from '@/lib/types'
 import { useLocation } from '@/lib/useLocation'
+import { freshSuffix } from '@/lib/mockQuests'
 import Link from 'next/link'
 
 const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? ''
@@ -86,9 +87,15 @@ export default function TourPage() {
       if (questType === 'timer' && !dur) dur = 180
       if (dur && dur > maxTimerSecs) dur = maxTimerSecs
 
+      // Strip de AI-richting (na \n\n) en vervang met willekeurige uit de pool
+      // — voorkomt dat de AI altijd dezelfde richting kiest (bijv. "rechts")
+      const rawInstruction = data.instruction ?? '...'
+      const mainPart = rawInstruction.split('\n\n')[0]
+      const instruction = `${mainPart}\n\n${freshSuffix(questType)}`
+
       const quest = addQuest({
         title: data.title ?? 'Nieuwe opdracht',
-        instruction: data.instruction ?? '...',
+        instruction,
         type: questType,
         durationSeconds: dur,
         completionCondition: data.completionCondition ?? '',
