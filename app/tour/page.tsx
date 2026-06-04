@@ -149,7 +149,8 @@ export default function TourPage() {
       })
       setCurrentQuest(quest)
       setVote(0)
-      setTimerStarted(false)
+      // Timer-quests starten automatisch; GPS pauzeert ze alleen bij stilstand
+      setTimerStarted(questType === 'timer' && !!dur)
 
       // Locatie loggen voor badges (type + plaatsnaam)
       recordLocation(location.type, location.city || location.village)
@@ -176,7 +177,11 @@ export default function TourPage() {
 
     try {
       if (forceOffline) throw new Error('offline quest turn')
+      // Max 5s wachten op de AI, anders terugvallen op offline
+      const ctrl = new AbortController()
+      const timeout = setTimeout(() => ctrl.abort(), 5000)
       const res = await fetch(AI_WORKER_URL, {
+        signal: ctrl.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -207,6 +212,7 @@ export default function TourPage() {
           },
         }),
       })
+      clearTimeout(timeout)
       if (!res.ok) throw new Error('api error')
       const data = await res.json()
       if (data.error) throw new Error(data.error)
