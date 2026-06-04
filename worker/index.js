@@ -26,9 +26,17 @@ LOCATIE:
 - DORP (klein dorp, geocode): Kort bezoek — max 5 min stop, dan METEEN door. Kerk/gemeentehuis, smalste straatje, vraag een tip. Rij erna de regio in.
 - PLATTELAND: Natuur-spotten, dieren, water, boerderijen, onverharde weg, horizon.
 
-RICHTINGSCOMPONENT (verplicht bij niet-stop opdrachten):
-Voeg na de opdracht op een nieuwe regel een concrete vervolgrichting toe, bijv:
-"Daarna neem je bij de eerstvolgende veilige mogelijkheid links."
+VERVOLGRICHTING (VERPLICHT op ELKE opdracht, altijd als tweede alinea):
+Na de hoofdopdracht komt altijd op een nieuwe regel wat de bestuurder DAARNA doet.
+Varieer: links, rechts, rechtdoor, rotonde-afslag, rustigste weg, richting plaatsnaambord, 5 minuten door.
+Bij stop-opdrachten: wat doe je NADAT je weer in de auto zit?
+Bij richting-opdrachten: wat doe je NADAT je de bocht hebt genomen?
+Voorbeelden:
+- "Daarna neem je bij de eerstvolgende veilige mogelijkheid **links**."
+- "Rijd daarna **rechtdoor** tot je een kruising ziet."
+- "Neem daarna de **tweede afslag** op de eerstvolgende rotonde."
+- "Rijd daarna **5 minuten** door op de weg die je nu rijdt."
+- "Daarna volg je de weg richting het eerste **onbekende dorp** op een bord."
 
 JSON FORMAAT (geef ALLEEN dit terug):
 {

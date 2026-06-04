@@ -99,8 +99,11 @@ export default function TourPage() {
       setTimerRunning(false)
     }
 
+    // Mix: ~30% kans op offline quest, ook als AI aan is — voor afwisseling
+    const forceOffline = !AI_WORKER_URL || !aiEnabled || Math.random() < 0.3
+
     try {
-      if (!AI_WORKER_URL || !aiEnabled) throw new Error('ai disabled')
+      if (forceOffline) throw new Error('offline quest turn')
       const res = await fetch(AI_WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,7 +128,7 @@ export default function TourPage() {
       setAiStatus('online')
       applyQuest(data)
     } catch {
-      setAiStatus('offline')
+      if (!forceOffline) setAiStatus('offline')
       const { getRandomMockQuest } = await import('@/lib/mockQuests')
       const template = getRandomMockQuest(
         tour.settings.mode,
