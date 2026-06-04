@@ -56,11 +56,6 @@ export default function HomePage() {
           🚗 Start een tour
         </Link>
 
-        <button className="btn-glass text-center py-4 opacity-60 cursor-not-allowed" disabled>
-          👥 Speel met vrienden
-          <span className="block text-xs text-white/30 mt-0.5">Binnenkort beschikbaar</span>
-        </button>
-
         <Link href="/history" className="btn-glass text-center py-4">
           📖 Bekijk vorige ritten
         </Link>
