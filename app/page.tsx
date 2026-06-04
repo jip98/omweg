@@ -1,14 +1,24 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { useTour } from '@/lib/tourStore'
+import Onboarding, { hasSeenOnboarding } from '@/components/Onboarding'
 
 export default function HomePage() {
   const { tour, resetAll } = useTour()
   const hasActiveTour = tour && tour.status !== 'completed'
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  // Toon onboarding automatisch bij eerste bezoek
+  useEffect(() => {
+    if (!hasSeenOnboarding()) setShowOnboarding(true)
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen py-8 gap-6">
+      {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
+
       {/* Header */}
       <div className="flex flex-col items-center text-center pt-12 pb-4 gap-4">
         <div className="text-7xl animate-pulse-slow">🛣️</div>
@@ -57,14 +67,13 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Feature pills */}
-      <div className="flex flex-wrap gap-2 justify-center mt-4">
-        {['AI-opdrachten', 'Zes modi', 'Timer-quests', 'Punten', 'Gratis'].map(f => (
-          <span key={f} className="glass px-3 py-1.5 text-xs text-white/60 rounded-full">
-            {f}
-          </span>
-        ))}
-      </div>
+      {/* Hoe werkt het? */}
+      <button
+        onClick={() => setShowOnboarding(true)}
+        className="btn-glass text-center py-3.5 text-sm text-white/70 mt-1 flex items-center justify-center gap-2"
+      >
+        <span className="text-base">❓</span> Hoe werkt het?
+      </button>
 
       {/* Footer */}
       <div className="mt-auto pt-6 text-center text-xs text-white/25">

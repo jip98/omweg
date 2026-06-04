@@ -9,8 +9,8 @@
     },
     {
       "name": "Omweg production preview",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve@latest", "out"],
       "port": 3000,
       "autoPort": true
     }
