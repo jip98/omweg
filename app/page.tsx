@@ -59,6 +59,10 @@ export default function HomePage() {
         <Link href="/history" className="btn-glass text-center py-4">
           📖 Bekijk vorige ritten
         </Link>
+
+        <Link href="/achievements" className="btn-glass text-center py-4">
+          🏆 Mijn badges
+        </Link>
       </div>
 
       {/* Hoe werkt het? */}

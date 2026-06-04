@@ -38,6 +38,7 @@ export default function TourPage() {
 
   const [currentQuest, setCurrentQuest] = useState<Quest | null>(null)
   const [vote, setVote] = useState<0 | 1 | -1>(0)
+  const [confirmEnd, setConfirmEnd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [timerStarted, setTimerStarted] = useState(false)   // gebruiker/GPS heeft timer gestart
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -381,12 +382,38 @@ export default function TourPage() {
       {/* End tour */}
       <div className="mt-4 flex gap-3">
         <button
-          onClick={handleEndTour}
+          onClick={() => setConfirmEnd(true)}
           className="flex-1 glass py-3 text-sm text-white/40 font-medium rounded-2xl active:scale-[0.97] transition-all"
         >
           🏁 Tour beëindigen
         </button>
       </div>
+
+      {/* Bevestiging stoppen */}
+      {confirmEnd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="glass-strong max-w-sm w-full p-6 flex flex-col gap-4 animate-slide-up">
+            <div className="text-center flex flex-col gap-2">
+              <div className="text-5xl">🏁</div>
+              <h2 className="text-xl font-black text-white">Tour beëindigen?</h2>
+              <p className="text-white/60 text-sm">
+                Je sluit de rit af en gaat naar het eindscherm. Je voortgang blijft bewaard.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button onClick={handleEndTour} className="btn-danger py-3.5 text-base">
+                🏁 Ja, beëindig de tour
+              </button>
+              <button
+                onClick={() => setConfirmEnd(false)}
+                className="btn-glass py-3.5 text-base text-white/70"
+              >
+                Doorgaan met rijden
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
