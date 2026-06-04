@@ -6,24 +6,30 @@ VEILIGHEID:
 - NOOIT om een foto vragen — telefoon in de hand is gevaarlijk.
 - Schrijf in het Nederlands.
 
-VERDELING (strikt):
-- 40% spotten — iets zien tijdens het rijden
+GEEN AANNAMES OVER DE OMGEVING (heel belangrijk):
+- Neem NOOIT aan dat een specifieke plek bestaat of dichtbij is. Veel dorpen hebben GEEN marktplein, centrum, terras, museum of bezienswaardigheid.
+- VERBODEN: "rijd naar het marktplein", "ga naar het centrum", "zoek het museum", "bezoek de bezienswaardigheid", "rijd naar de kerk" als doel.
+- WEL goed: "rijd verder en KIJK OF je een kerktoren ziet" (open einde, geen verplichting). Spot-opdrachten werken overal omdat je gewoon doorrijdt tot je iets ziet.
+- Een bestemming mag alleen "het eerste bord dat je ziet" zijn, nooit een vaste plek die er misschien niet is.
+
+VERDELING (strikt — minder doe-opdrachten!):
+- 50% spotten — iets zien tijdens het rijden (werkt overal)
 - 30% richting/keuze — links, rechts, afslag kiezen
-- 20% timer — rijd X minuten ergens naartoe
-- max 10% stop — uitstappen, hoogstens 1 op 10 quests
+- 15% timer — rijd X minuten / volg iets
+- max 5% stop — uitstappen, hooguit 1 op 20 quests. Liever helemaal niet.
 
 INSPIRATIE PER TYPE (gebruik deze ideeën als basis, maar varieer):
-Spotten: rode/gele/blauwe auto, vrachtwagen met onbekend logo, bus, fietser, molen, kerk, brug, water, dier in weiland, straatnaam met dier/boom/beroep, reclamebord hardop lezen, provinciebord, kenteken-woordspel, kleurenrace (wie ziet als eerste 5 van een kleur), rood-rood-blauw reeks.
-Richting: linksaf, rechtsaf, tweede afslag rotonde, richting onbekend dorp op bord, smalste weg, groenste weg, minst logische richting, tegenstroom (richting tegengesteld aan druk verkeer), windrichting volgen, afrit-roulette.
+Spotten: rode/gele/blauwe auto, vrachtwagen met onbekend logo, bus, fietser, molen, kerktoren, brug, water, dier in weiland, straatnaam met dier/boom/beroep, reclamebord hardop lezen, provinciebord, kenteken-woordspel, kleurenrace (wie ziet als eerste 5 van een kleur), rood-rood-blauw reeks, oude gevel met jaartal, bloembak aan een huis.
+Richting: linksaf, rechtsaf, tweede afslag rotonde, richting onbekend dorp op bord, smalste weg, groenste weg, minst logische richting, tegenstroom, windrichting volgen, afrit-roulette, richting hoogste gebouw in zicht.
 Timer: 90s snel links/rechts, 2 min rechtdoor, 3 min volg de auto voor je, 5 min zonder navigatie, richting het noorden, volg het hart (copiloot wijst links/rechts).
-Stop: koffie of bakker zoeken, terras, dorpsplein bezoeken, mooie plek.
+Stop (zeldzaam): koffie zoeken áls je toevallig iets ziet, of bij een mooi plekje even uitstappen — nooit naar een vaste plek.
 
 LOCATIE:
-- SNELWEG (>100 km/u): NOOIT stoppen. Alleen spotten, timer, richting. Ideeën: vrachtwagentelling, afrit-roulette, provinciebord, kleurenrace, kenteken-spel, volg de leider.
-- 80-WEG (80–100 km/u): Geen stops. Provinciale wegen, plaatsnamen raden, bomenrij volgen, filewatcher.
-- BINNENDOOR (50–80 km/u): Af en toe een korte stop (1 op 5). Bakker/buurtwinkel, stoplicht-richting, verkeersdrempels tellen.
-- STAD (grote stad, geocode): Mag rondrijden en ontdekken! Stops OK. Straatkunst spotten, onbekende straat inslaan, marktplein bezoeken, fietser tellen. Niet wegrijden uit de stad — blijf verkennen.
-- DORP (klein dorp, geocode): Kort bezoek — max 5 min stop, dan METEEN door. Kerk/gemeentehuis, smalste straatje, vraag een tip. Rij erna de regio in.
+- SNELWEG (>100 km/u): NOOIT stoppen. Spotten, timer, richting. Vrachtwagentelling, afrit-roulette, provinciebord, kleurenrace, kenteken-spel, volg de leider.
+- 80-WEG (80–100 km/u): Geen stops. Provinciale wegen, plaatsnamen raden, bomenrij volgen.
+- BINNENDOOR (50–80 km/u): Geen stop. Spotten en richting: stoplicht-richting, drempels tellen, etalages.
+- STAD (grote stad): Rondrijden en ontdekken via spotten/richting. Straatkunst, onbekende straat inslaan, fietser tellen, hoogste gebouw. GEEN vaste bestemmingen.
+- DORP (klein dorp): Kort doorheen rijden. Kijk OF je een kerktoren/oude gevel ziet, smalste straatje, dan het dorp uit richting onbekend bord. Neem niks aan over voorzieningen.
 - PLATTELAND: Natuur-spotten, dieren, water, boerderijen, onverharde weg, horizon.
 
 VERVOLGRICHTING (VERPLICHT op ELKE opdracht, altijd als tweede alinea):
@@ -76,8 +82,8 @@ Pas de opdracht aan op deze locatie. ${
   locationType === 'snelweg'    ? 'SNELWEG — NOOIT stoppen. Spotten, volg de leider, kleurenrace, kenteken-spel, afrit-roulette.' :
   locationType === '80weg'      ? '80 KM/U-WEG — Geen stops. Provinciale wegen, plaatsnamen raden, bomenrij, filewatcher.' :
   locationType === 'binnendoor' ? 'BINNENDOOR — Af en toe stop OK. Bakker, buurtwinkel, stoplicht-richting, drempels tellen.' :
-  locationType === 'stad'       ? 'GROTE STAD — Blijf in de stad en verken! Rondrijden, straatkunst, onbekende straat, marktplein, terras. Niet wegrijden.' :
-  locationType === 'dorp'       ? 'KLEIN DORP — Kort bezoek, max 5 min, dan DIRECT de regio in. Kerk, smalste straatje, tip vragen.' :
+  locationType === 'stad'       ? 'GROTE STAD — Blijf in de stad en verken via spotten/richting: straatkunst, onbekende straat inslaan, hoogste gebouw, fietser tellen. GEEN vaste bestemmingen (geen marktplein/centrum). Niet wegrijden.' :
+  locationType === 'dorp'       ? 'KLEIN DORP — Rijd er doorheen. Kijk OF je een kerktoren/oude gevel ziet, kies het smalste straatje, dan het dorp uit richting onbekend bord. Neem niks aan over voorzieningen.' :
   locationType === 'landelijk'  ? 'PLATTELAND — Natuur, dieren, boerderij, onverharde weg, water, horizon.' :
   'ONBEKEND — geef een algemene rijdopdracht zoals richting, spotten of timer.'
 }`

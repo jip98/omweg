@@ -163,10 +163,9 @@ const KIDS_QUESTS: QuestTemplate[] = [
 
 // ─── DATE MODE ───────────────────────────────────────────────────────────────
 const DATE_QUESTS: QuestTemplate[] = [
-  q('Verrassingsplek', 'Stop bij de volgende mooie of romantische plek die je veilig kunt bereiken. Maak er iets van.', 'stop', 'Samen gestopt op een mooie plek.'),
   q('Zonsondergang zoeken', 'Rijd richting de ondergaande zon. Kies de weg met het mooiste uitzicht.', 'direction', 'Mooi uitzicht gevonden.'),
-  q('Geheimzinnig dorp', 'Rijdt naar het kleinste dorp dat jullie op een bord zien. Ontdek iets leuks.', 'spotting', 'Klein dorp bezocht.'),
-  q('Verrassingsplek', 'Stop op een plek die jullie allebei mooi vinden. Stap even uit en geniet. +2 punten!', 'stop', 'Mooi plekje gevonden.'),
+  q('Geheimzinnig dorp', 'Rijd richting het eerste onbekende dorp op een bord. Ontdek wat jullie tegenkomen.', 'spotting', 'Onbekend dorp gevonden.'),
+  q('Verrassingsplek', 'Stop bij een plek die jullie allebei mooi vinden, als die zich aandient. Stap even uit en geniet. +2 punten!', 'stop', 'Mooi plekje gevonden.'),
   q('Rustmoment', 'Zoek een stille, mooie plek om 5 minuten te stoppen. Zet de motor uit en geniet.', 'timer', 'Rustmoment genomen.', 300),
 ]
 
@@ -189,20 +188,22 @@ const HIGHWAY_QUESTS: QuestTemplate[] = [
   q('Afrit-roulette', 'Neem de eerstvolgende afrit. Ontdek wat er te zien is en keer daarna terug of ga door.', 'direction', 'Afrit genomen.'),
 ]
 
+// Dorp — werkt overal, neemt geen voorzieningen aan. Vooral spotten + richting.
 const VILLAGE_QUESTS: QuestTemplate[] = [
-  q('Dorpskerk', 'Zoek de kerk of het gemeentehuis van dit dorp. Stap even uit en kijk rond — max 5 minuten.', 'stop', 'Kerk of gemeentehuis gevonden.'),
-  q('Dorpsplein', 'Stop even op het dorpsplein als je dat veilig kunt. Bekijk de omgeving 2 minuten.', 'timer', 'Kort gestopt.', 120),
-  q('Vraag een tip', 'Stop bij een voorbijganger of winkel en vraag de mooiste tip voor de omgeving. Dan door!', 'stop', 'Tip ontvangen.'),
-  q('Kleinste straatje', 'Rijd door het smalste straatje van het dorp dat je veilig kunt nemen. Dan er weer uit!', 'direction', 'Door het straatje gereden.'),
-  q('Dorpsnaambord', 'Stop bij het dorpsnaambord aan de uitgang van het dorp. Even uitstappen en rondkijken!', 'stop', 'Dorpsnaambord gevonden.'),
+  q('Kerktoren', 'Rijd verder en kijk of je een kerktoren ziet. Zo niet, dan rijd je gewoon door het dorp.', 'spotting', 'Kerktoren gezien of dorp door.'),
+  q('Kleinste straatje', 'Kies het smalste straatje van het dorp dat je veilig kunt nemen.', 'direction', 'Smalste straatje gekozen.'),
+  q('Oude gevel', 'Let op een oud huis of een jaartal op een gevel. Wie ziet er een?', 'spotting', 'Oude gevel of jaartal gespot.'),
+  q('Het dorp uit', 'Rijd het dorp uit richting het eerste onbekende plaatsnaambord dat je ziet.', 'direction', 'Dorp uit richting onbekend bord.'),
+  q('Bloembak-jacht', 'Wie ziet als eerste een bloembak of hangende plant aan een huis?', 'spotting', 'Bloembak gespot.'),
 ]
 
+// Stad — rondrijden en ontdekken, geen aanname over centrum/markt. Spotten + richting.
 const CITY_QUESTS: QuestTemplate[] = [
-  q('Straatkunst', 'Rijd door totdat je straatkunst of graffiti ziet. Mooi of lelijk — maakt niet uit.', 'spotting', 'Straatkunst gespot.'),
-  q('Terras-stop', 'Zoek een terras of koffiebar waar je kort kunt stoppen. Max 10 minuten.', 'stop', 'Koffie of drankje gehaald.'),
+  q('Straatkunst', 'Rijd verder en kijk of je straatkunst of graffiti ziet.', 'spotting', 'Straatkunst gespot.'),
   q('Fietser tellen', 'Tel de fietsers die jullie de komende 2 minuten zien. Wie telt er het meest?', 'timer', 'Timer afgelopen.', 120),
-  q('Marktplein', 'Rijd naar het centrum of marktplein van de stad. Even rondrijden en dan door.', 'direction', 'Centrum bezocht.'),
   q('Onbekende straat', 'Neem de eerstvolgende straat die jullie allebei nog nooit gehoord hebben.', 'direction', 'Onbekende straat ingeslagen.'),
+  q('Hoogste gebouw', 'Welk gebouw in zicht is het hoogst? Rijd er globaal naartoe.', 'direction', 'Richting hoogste gebouw.'),
+  q('Etalage-spot', 'Wie ziet als eerste een etalage met iets wat niemand verwacht?', 'spotting', 'Bijzondere etalage gespot.'),
 ]
 
 const RURAL_QUESTS: QuestTemplate[] = [
@@ -295,8 +296,15 @@ export function getRandomMockQuest(
     pool = [...DIRECTION_QUESTS, ...SPOTTING_QUESTS]
   }
 
-  const unused = pool.filter(q => !previousTitles.includes(q.title))
-  const source = unused.length > 0 ? unused : pool
+  // Stop-rem: stops zijn doe-opdrachten en moeten zeldzaam zijn (~12%).
+  // Splits de pool en geef niet-stops veruit de voorkeur.
+  const nonStops = pool.filter(q => q.type !== 'stop')
+  const stops = pool.filter(q => q.type === 'stop')
+  const wantStop = stops.length > 0 && nonStops.length > 0 && Math.random() < 0.12
+  let candidatePool = wantStop ? stops : (nonStops.length > 0 ? nonStops : pool)
+
+  const unused = candidatePool.filter(q => !previousTitles.includes(q.title))
+  const source = unused.length > 0 ? unused : candidatePool
   const template = source[Math.floor(Math.random() * source.length)]
 
   // Voor challenge-quests met durationSeconds === 0: willekeurige 2-5 min
