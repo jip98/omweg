@@ -131,6 +131,15 @@ export default function TourPage() {
     // Mix: ~30% kans op offline quest, ook als AI aan is — voor afwisseling
     const forceOffline = !AI_WORKER_URL || !aiEnabled || Math.random() < 0.3
 
+    // Tijd- en voortgangscontext
+    const totalMin = Math.round(durationSeconds / 60)
+    const progressPct = Math.round((elapsedSeconds / durationSeconds) * 100)
+    const phase = progressPct < 20 ? 'begin' : progressPct > 80 ? 'einde' : 'midden'
+    const hour = new Date().getHours()
+    const partOfDay =
+      hour < 6 ? 'nacht' : hour < 12 ? 'ochtend' : hour < 18 ? 'middag' :
+      hour < 22 ? 'avond' : 'nacht'
+
     try {
       if (forceOffline) throw new Error('offline quest turn')
       const res = await fetch(AI_WORKER_URL, {
@@ -140,14 +149,22 @@ export default function TourPage() {
           mode: tour.settings.mode,
           difficulty: tour.settings.difficulty,
           timeLeftMinutes,
+          totalMinutes: totalMin,
+          phase,            // begin | midden | einde
+          partOfDay,        // ochtend | middag | avond | nacht
+          questNumber: tour.quests.length + 1,
           allowStops: tour.settings.stopPreference,
+          roadPreference: tour.settings.roadPreference,
           previousTitles,
           location: {
             type: location.type,
             description: location.description,
             city: location.city,
             village: location.village,
+            road: location.road,
+            county: location.county,
             speedKmh: location.speedKmh,
+            compass: location.compass,
           },
         }),
       })

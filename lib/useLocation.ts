@@ -15,7 +15,10 @@ export interface LocationContext {
   city?: string
   village?: string
   road?: string
+  county?: string         // gemeente/regio
   speedKmh?: number
+  heading?: number        // graden (0=noord, 90=oost)
+  compass?: string        // 'noord', 'noordoost', ...
   description: string
   available: boolean
 }
@@ -24,6 +27,12 @@ const DEFAULT: LocationContext = {
   type: 'onbekend',
   description: 'Locatie onbekend',
   available: false,
+}
+
+const COMPASS = ['noord', 'noordoost', 'oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest']
+function headingToCompass(deg?: number): string | undefined {
+  if (deg == null || isNaN(deg)) return undefined
+  return COMPASS[Math.round(deg / 45) % 8]
 }
 
 function typeFromSpeed(kmh: number): LocationType | null {
@@ -71,8 +80,11 @@ export function useLocation(): LocationContext {
 
     const watchId = navigator.geolocation.watchPosition(
       async (pos) => {
-        const { latitude, longitude, speed } = pos.coords
+        const { latitude, longitude, speed, heading } = pos.coords
         const speedKmh = speed != null ? Math.round(speed * 3.6) : undefined
+        // Heading is alleen betrouwbaar als je rijdt
+        const hdg = (heading != null && !isNaN(heading) && (speedKmh ?? 0) > 5) ? heading : undefined
+        const compass = headingToCompass(hdg)
 
         // Snelheidsdetectie — werkt zonder geocoding, maar sla stilstand over
         if (speedKmh != null) {
@@ -82,6 +94,8 @@ export function useLocation(): LocationContext {
               ...prev,
               type: speedType,
               speedKmh,
+              heading: hdg ?? prev.heading,
+              compass: compass ?? prev.compass,
               description: buildDescription(speedType, {}, speedKmh),
               available: true,
             }))
@@ -115,12 +129,15 @@ export function useLocation(): LocationContext {
             city: addr.city || addr.town,
             village: addr.village || addr.hamlet,
             road: addr.road,
+            county: addr.municipality || addr.county || addr.state,
             speedKmh,
+            heading: hdg,
+            compass,
             description: buildDescription(finalType, addr, speedKmh ?? undefined),
             available: true,
           })
         } catch {
-          setCtx(prev => ({ ...prev, speedKmh, available: true }))
+          setCtx(prev => ({ ...prev, speedKmh, heading: hdg ?? prev.heading, compass: compass ?? prev.compass, available: true }))
         }
       },
       () => { /* GPS geweigerd */ },

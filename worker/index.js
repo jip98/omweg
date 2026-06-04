@@ -55,37 +55,63 @@ JSON FORMAAT (geef ALLEEN dit terug):
 
 function buildPrompt(body) {
   const {
-    mode, difficulty, timeLeftMinutes, allowStops,
+    mode, difficulty, timeLeftMinutes, totalMinutes,
+    phase, partOfDay, questNumber,
+    allowStops, roadPreference,
     previousTitles = [], location = {}
   } = body
 
-  const locationDesc = location.description || 'Locatie onbekend'
   const locationType = location.type || 'onbekend'
-  const speedInfo = location.speedKmh ? `Snelheid: ~${location.speedKmh} km/u.` : ''
-  const placeInfo = location.city ? `Stad: ${location.city}.` : location.village ? `Dorp: ${location.village}.` : ''
+
+  // Locatieregels per type
+  const locationRule =
+    locationType === 'snelweg'    ? 'SNELWEG — NOOIT stoppen. Spotten, volg de leider, kleurenrace, kenteken-spel, afrit-roulette.' :
+    locationType === '80weg'      ? '80 KM/U-WEG — Geen stops. Provinciale wegen, plaatsnamen raden, bomenrij, filewatcher.' :
+    locationType === 'binnendoor' ? 'BINNENDOOR — Stoppen mag juist, hier zijn vaak mooie plekjes. Korte stop bij iets moois, plus spotten en richting.' :
+    locationType === 'stad'       ? 'GROTE STAD — Blijf in de stad en verken via spotten/richting: straatkunst, onbekende straat inslaan, hoogste gebouw, fietser tellen. GEEN vaste bestemmingen. Niet wegrijden.' :
+    locationType === 'dorp'       ? 'KLEIN DORP — Rijd er doorheen. Kijk OF je een kerktoren/oude gevel ziet, kies het smalste straatje, dan het dorp uit richting onbekend bord. Neem niks aan over voorzieningen.' :
+    locationType === 'landelijk'  ? 'PLATTELAND — Natuur, dieren, boerderij, onverharde weg, water, horizon.' :
+    'ONBEKEND — geef een algemene rijdopdracht zoals richting, spotten of timer.'
+
+  // Faseregels: pas opdracht aan op hoe ver de rit is
+  const phaseRule =
+    phase === 'begin' ? 'BEGIN van de rit — opwarmer, laagdrempelig, zet de toon.' :
+    phase === 'einde' ? `EINDE nadert (nog ${timeLeftMinutes} min) — houd opdrachten KORT, geen lange timers die over de eindtijd lopen. Eventueel richting een mooi eindpunt.` :
+    'MIDDEN van de rit — alles mag, wees creatief en gevarieerd.'
+
+  // Tijd van de dag
+  const timeRule =
+    partOfDay === 'ochtend' ? 'OCHTEND — fris, eventueel koffie spotten.' :
+    partOfDay === 'middag'  ? 'MIDDAG — volop daglicht, alles kan.' :
+    partOfDay === 'avond'   ? 'AVOND — laag zonlicht, mooie luchten, zonsondergang-richting kan leuk zijn.' :
+    'NACHT — donker. Focus op verlichte dingen: verlichte borden, lichtreclame, koplampen tellen. Geen "spot een dier in het weiland" (niet zichtbaar).'
+
+  // Bouw de regels samen, alleen niet-lege
+  const lines = [
+    `Modus: ${mode}`,
+    `Moeilijkheid: ${difficulty}`,
+    `Tour: ${totalMinutes ?? '?'} min totaal, nog ${timeLeftMinutes} min te gaan (fase: ${phase ?? 'onbekend'})`,
+    `Opdrachtnummer: ${questNumber ?? '?'}`,
+    `Tijd van de dag: ${partOfDay ?? 'onbekend'}`,
+    `Stops toegestaan: ${allowStops}`,
+    roadPreference ? `Wegvoorkeur: ${roadPreference}` : null,
+    location.description ? `Waar: ${location.description}` : null,
+    location.road ? `Straat/weg: ${location.road}` : null,
+    location.county ? `Gemeente/regio: ${location.county}` : null,
+    location.speedKmh != null ? `Snelheid: ~${location.speedKmh} km/u` : null,
+    location.compass ? `Rijrichting: naar het ${location.compass} (zeg NIET "rijd naar het ${location.compass}", daar gaan ze al heen — kies een ANDERE richting)` : null,
+    `Vorige opdrachten (vermijd herhaling): ${previousTitles.slice(-5).join(', ') || 'geen'}`,
+  ].filter(Boolean)
 
   return `Genereer één opdracht voor het Omweg roadtrip spel.
-Modus: ${mode}
-Moeilijkheid: ${difficulty}
-Resterende tijd: ${timeLeftMinutes} minuten
-Stops toegestaan: ${allowStops}
-Vorige opdrachten (vermijd herhaling): ${previousTitles.slice(-5).join(', ') || 'geen'}
 
-HUIDIGE LOCATIECONTEXT:
-Omgeving: ${locationDesc}
-Type: ${locationType}
-${speedInfo}
-${placeInfo}
+${lines.join('\n')}
 
-Pas de opdracht aan op deze locatie. ${
-  locationType === 'snelweg'    ? 'SNELWEG — NOOIT stoppen. Spotten, volg de leider, kleurenrace, kenteken-spel, afrit-roulette.' :
-  locationType === '80weg'      ? '80 KM/U-WEG — Geen stops. Provinciale wegen, plaatsnamen raden, bomenrij, filewatcher.' :
-  locationType === 'binnendoor' ? 'BINNENDOOR — Stoppen mag juist, hier zijn vaak mooie plekjes. Korte stop bij iets moois, plus spotten en richting.' :
-  locationType === 'stad'       ? 'GROTE STAD — Blijf in de stad en verken via spotten/richting: straatkunst, onbekende straat inslaan, hoogste gebouw, fietser tellen. GEEN vaste bestemmingen (geen marktplein/centrum). Niet wegrijden.' :
-  locationType === 'dorp'       ? 'KLEIN DORP — Rijd er doorheen. Kijk OF je een kerktoren/oude gevel ziet, kies het smalste straatje, dan het dorp uit richting onbekend bord. Neem niks aan over voorzieningen.' :
-  locationType === 'landelijk'  ? 'PLATTELAND — Natuur, dieren, boerderij, onverharde weg, water, horizon.' :
-  'ONBEKEND — geef een algemene rijdopdracht zoals richting, spotten of timer.'
-}`
+LOCATIE: ${locationRule}
+FASE: ${phaseRule}
+TIJD: ${timeRule}
+
+Stem de opdracht concreet af op bovenstaande context.`
 }
 
 const corsHeaders = {
