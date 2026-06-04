@@ -5,6 +5,9 @@ export type StopPreference = 'geen' | 'kort' | 'koffie' | 'mooi'
 export type QuestType = 'direction' | 'timer' | 'spotting' | 'stop' | 'choice' | 'random'
 export type QuestStatus = 'active' | 'completed' | 'skipped'
 export type TourStatus = 'setup' | 'active' | 'paused' | 'completed'
+export type LocationType = 'snelweg' | '80weg' | 'binnendoor' | 'stad' | 'dorp' | 'landelijk' | 'onbekend'
+
+export interface TracePoint { lat: number; lng: number; t: number }
 
 export interface TourSettings {
   mode: TourMode
@@ -12,6 +15,7 @@ export interface TourSettings {
   difficulty: Difficulty
   roadPreference: RoadPreference
   stopPreference: StopPreference
+  returnHome: boolean
 }
 
 export interface Quest {
@@ -26,6 +30,7 @@ export interface Quest {
   createdAt: number
   completedAt?: number
   points: number
+  locationType?: LocationType
 }
 
 export interface TourState {
@@ -36,6 +41,17 @@ export interface TourState {
   status: TourStatus
   quests: Quest[]
   totalScore: number
+  trace: TracePoint[]
+  startCoord?: { lat: number; lng: number }
+  places: string[]                 // distinct plaatsnamen bezocht
+  locationTypes: LocationType[]    // type bij elke opdracht (voor badges)
+}
+
+export interface Achievement {
+  id: string
+  icon: string
+  title: string
+  description: string
 }
 
 export const MODE_LABELS: Record<TourMode, string> = {

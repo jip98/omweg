@@ -1,3 +1,8 @@
 name = "omweg-ai"
 main = "index.js"
 compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "omweg-feedback"
+database_id = "997e57bd-2a91-4e4d-b764-a2ce1c340b15"

@@ -57,23 +57,43 @@ interface QuestCardProps {
   onSkip: () => void
   onNew: () => void
   onPause: () => void
+  onVote?: (vote: 1 | -1) => void
+  vote?: 0 | 1 | -1
   loading?: boolean
 }
 
 export default function QuestCard({
   quest, timerRunning, timerAutoPaused, timerStarted,
   onTimerComplete, onStartTimer,
-  onComplete, onSkip, onNew, onPause, loading,
+  onComplete, onSkip, onNew, onPause, onVote, vote = 0, loading,
 }: QuestCardProps) {
   const config = TYPE_CONFIG[quest.type]
   const hasTimer = quest.type === 'timer' && !!quest.durationSeconds
 
   return (
     <div className="flex flex-col gap-4 animate-slide-up">
-      {/* Type badge */}
+      {/* Type badge + like/dislike */}
       <div className="flex items-center gap-2">
         <span className="text-xl">{config.icon}</span>
         <span className="label-chip">{config.label}</span>
+        {onVote && (
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={() => onVote(1)}
+              title="Leuke opdracht"
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-base transition-all active:scale-90 ${
+                vote === 1 ? 'bg-emerald-500/40 border border-emerald-400/50' : 'glass'
+              }`}
+            >👍</button>
+            <button
+              onClick={() => onVote(-1)}
+              title="Niet leuk"
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-base transition-all active:scale-90 ${
+                vote === -1 ? 'bg-rose-500/40 border border-rose-400/50' : 'glass'
+              }`}
+            >👎</button>
+          </div>
+        )}
       </div>
 
       {/* Main card */}

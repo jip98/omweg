@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import type { LocationType } from './types'
 
 // snelweg    = >100 km/u
 // 80weg      = 80–100 km/u  (provinciale/80km wegen)
@@ -8,7 +9,7 @@ import { useState, useEffect, useRef } from 'react'
 // stad       = grote stad/town (geocode: addr.city / addr.town)
 // dorp       = 1–50 km/u of klein dorp (addr.village / addr.hamlet)
 // stilstand  = 0 km/u → niet meetellen
-export type LocationType = 'snelweg' | '80weg' | 'binnendoor' | 'stad' | 'dorp' | 'landelijk' | 'onbekend'
+export type { LocationType }
 
 export interface LocationContext {
   type: LocationType
@@ -19,6 +20,8 @@ export interface LocationContext {
   speedKmh?: number
   heading?: number        // graden (0=noord, 90=oost)
   compass?: string        // 'noord', 'noordoost', ...
+  lat?: number
+  lng?: number
   description: string
   available: boolean
 }
@@ -96,13 +99,15 @@ export function useLocation(): LocationContext {
               speedKmh,
               heading: hdg ?? prev.heading,
               compass: compass ?? prev.compass,
+              lat: latitude,
+              lng: longitude,
               description: buildDescription(speedType, {}, speedKmh),
               available: true,
             }))
           }
           // Bij stilstand (0 km/u): type NIET updaten, alleen speedKmh bijwerken
           if (speedKmh === 0) {
-            setCtx(prev => ({ ...prev, speedKmh: 0, available: true }))
+            setCtx(prev => ({ ...prev, speedKmh: 0, lat: latitude, lng: longitude, available: true }))
           }
         }
 
@@ -133,11 +138,13 @@ export function useLocation(): LocationContext {
             speedKmh,
             heading: hdg,
             compass,
+            lat: latitude,
+            lng: longitude,
             description: buildDescription(finalType, addr, speedKmh ?? undefined),
             available: true,
           })
         } catch {
-          setCtx(prev => ({ ...prev, speedKmh, heading: hdg ?? prev.heading, compass: compass ?? prev.compass, available: true }))
+          setCtx(prev => ({ ...prev, speedKmh, heading: hdg ?? prev.heading, compass: compass ?? prev.compass, lat: latitude, lng: longitude, available: true }))
         }
       },
       () => { /* GPS geweigerd */ },

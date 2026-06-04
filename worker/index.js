@@ -58,6 +58,7 @@ function buildPrompt(body) {
     mode, difficulty, timeLeftMinutes, totalMinutes,
     phase, partOfDay, questNumber,
     allowStops, roadPreference,
+    returnHome, headingHome,
     previousTitles = [], location = {}
   } = body
 
@@ -103,13 +104,22 @@ function buildPrompt(body) {
     `Vorige opdrachten (vermijd herhaling): ${previousTitles.slice(-5).join(', ') || 'geen'}`,
   ].filter(Boolean)
 
+  // Terugkeer naar start in de eindfase
+  const homeRule = returnHome
+    ? `\nTERUGKEER: De rit loopt af en de spelers willen richting hun vertrekpunt. ${
+        headingHome
+          ? `Het startpunt ligt globaal in de richting **${headingHome}**. Geef opdrachten die hen geleidelijk die kant op sturen (kies wegen/afslagen richting het ${headingHome}), zonder saaie kale navigatie — houd het speels.`
+          : 'Stuur hen met richting-opdrachten geleidelijk terug, speels gehouden.'
+      }`
+    : ''
+
   return `Genereer één opdracht voor het Omweg roadtrip spel.
 
 ${lines.join('\n')}
 
 LOCATIE: ${locationRule}
 FASE: ${phaseRule}
-TIJD: ${timeRule}
+TIJD: ${timeRule}${homeRule}
 
 Stem de opdracht concreet af op bovenstaande context.`
 }
@@ -120,6 +130,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
+const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+
+// Sla like/dislike op in D1 (generiek — zonder plaatsnaam)
+async function handleFeedback(request, env) {
+  if (!env.DB) {
+    return new Response(JSON.stringify({ ok: false, error: 'geen database' }), { status: 200, headers: jsonHeaders })
+  }
+  const f = await request.json()
+  const vote = f.vote === 1 ? 1 : f.vote === -1 ? -1 : 0
+  if (vote === 0) return new Response(JSON.stringify({ ok: false }), { status: 400, headers: jsonHeaders })
+
+  try {
+    await env.DB.prepare(
+      `INSERT INTO feedback (vote, type, title, instruction, mode, location_type, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      vote,
+      String(f.type ?? '').slice(0, 20),
+      String(f.title ?? '').slice(0, 120),
+      String(f.instruction ?? '').slice(0, 500),
+      String(f.mode ?? '').slice(0, 20),
+      String(f.locationType ?? '').slice(0, 20),
+      Date.now()
+    ).run()
+    return new Response(JSON.stringify({ ok: true }), { headers: jsonHeaders })
+  } catch (e) {
+    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 200, headers: jsonHeaders })
+  }
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') {
@@ -128,6 +168,11 @@ export default {
 
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+    }
+
+    const { pathname } = new URL(request.url)
+    if (pathname.endsWith('/feedback')) {
+      return handleFeedback(request, env)
     }
 
     try {

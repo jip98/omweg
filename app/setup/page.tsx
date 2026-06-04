@@ -34,15 +34,28 @@ export default function SetupPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('normaal')
   const [road, setRoad] = useState<RoadPreference>('alles')
   const [stops, setStops] = useState<StopPreference>('kort')
+  const [returnHome, setReturnHome] = useState(false)
 
   function handleStart() {
     const settings: TourSettings = {
       mode, duration, difficulty,
       roadPreference: road, stopPreference: stops,
+      returnHome,
     }
-    // Fix: settings direct meegeven — geen async state race meer
-    startTour(settings)
-    router.push('/tour')
+    // Probeer startlocatie te pakken zodat terugkeer + route werken
+    const begin = (coord?: { lat: number; lng: number }) => {
+      startTour(settings, coord)
+      router.push('/tour')
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => begin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => begin(undefined),
+        { enableHighAccuracy: true, timeout: 5000 }
+      )
+    } else {
+      begin(undefined)
+    }
   }
 
   return (
@@ -151,6 +164,28 @@ export default function SetupPage() {
             </button>
           ))}
         </div>
+      </Section>
+
+      {/* Terugkeer naar start */}
+      <Section title="Terugkeer" icon="🏠">
+        <button
+          onClick={() => setReturnHome(v => !v)}
+          className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-left transition-all ${
+            returnHome
+              ? 'bg-gradient-to-r from-orange-500/40 to-amber-400/30 border border-orange-400/40 text-white'
+              : 'glass text-white/70'
+          }`}
+        >
+          <span>
+            Breng me aan het eind weer richting start
+            <span className="block text-xs text-white/40 mt-0.5 font-normal">
+              De laatste minuten sturen je terug naar je vertrekpunt
+            </span>
+          </span>
+          <span className={`shrink-0 ml-3 w-11 h-6 rounded-full transition-colors relative ${returnHome ? 'bg-orange-400' : 'bg-white/15'}`}>
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${returnHome ? 'left-[22px]' : 'left-0.5'}`} />
+          </span>
+        </button>
       </Section>
 
       {/* Start button */}

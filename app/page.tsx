@@ -61,10 +61,9 @@ export default function HomePage() {
           <span className="block text-xs text-white/30 mt-0.5">Binnenkort beschikbaar</span>
         </button>
 
-        <button className="btn-glass text-center py-4 opacity-60 cursor-not-allowed" disabled>
+        <Link href="/history" className="btn-glass text-center py-4">
           📖 Bekijk vorige ritten
-          <span className="block text-xs text-white/30 mt-0.5">Binnenkort beschikbaar</span>
-        </button>
+        </Link>
       </div>
 
       {/* Hoe werkt het? */}

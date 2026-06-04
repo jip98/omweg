@@ -1,10 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useTour } from '@/lib/tourStore'
 import { END_TITLES, MODE_ICONS, MODE_LABELS, QuestType } from '@/lib/types'
+import { computeAchievements, traceDistanceKm } from '@/lib/achievements'
+import ShareCard from '@/components/ShareCard'
 import Link from 'next/link'
+
+const RouteMap = dynamic(() => import('@/components/RouteMap'), { ssr: false })
 
 const TYPE_ICONS: Record<QuestType, string> = {
   direction: '🧭', timer: '⏱️', spotting: '👀', stop: '📍', choice: '🎲', random: '⚡',
@@ -22,6 +27,8 @@ export default function SummaryPage() {
   const { tour, hydrated, resetAll } = useTour()
   const [endTitle, setEndTitle] = useState('')
   const [revealed, setRevealed] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const shareRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!hydrated) return
@@ -41,6 +48,8 @@ export default function SummaryPage() {
   const completed = tour.quests.filter(q => q.status === 'completed')
   const skipped = tour.quests.filter(q => q.status === 'skipped')
   const duration = tour.endedAt ? tour.endedAt - tour.startedAt : 0
+  const km = Math.round(traceDistanceKm(tour.trace ?? []))
+  const achievements = computeAchievements(tour)
 
   const funniest = completed.length > 0
     ? completed[Math.floor(Math.random() * completed.length)]
@@ -49,6 +58,33 @@ export default function SummaryPage() {
   function handleNewTour() {
     resetAll()
     router.push('/')
+  }
+
+  async function handleShare() {
+    if (!shareRef.current) return
+    setSharing(true)
+    try {
+      const { toBlob } = await import('html-to-image')
+      const blob = await toBlob(shareRef.current, { pixelRatio: 2, cacheBust: true })
+      if (!blob) throw new Error('geen afbeelding')
+      const file = new File([blob], 'omweg-rit.png', { type: 'image/png' })
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Mijn Omweg-rit' })
+      } else {
+        // Fallback: download
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'omweg-rit.png'
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch {
+      // gebruiker annuleerde of niet ondersteund — stil
+    } finally {
+      setSharing(false)
+    }
   }
 
   return (
@@ -70,20 +106,44 @@ export default function SummaryPage() {
         <p className="text-white/40 text-sm mt-1">punten</p>
       </div>
 
+      {/* Route map */}
+      <div className="flex flex-col gap-2">
+        <p className="label-chip">Jullie route</p>
+        <RouteMap trace={tour.trace ?? []} />
+      </div>
+
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard icon="✅" label="Voltooid" value={String(completed.length)} />
         <StatCard icon="⏭️" label="Overgeslagen" value={String(skipped.length)} />
-        <StatCard icon="📋" label="Totaal opdrachten" value={String(tour.quests.length)} />
+        <StatCard icon="🛣️" label="Afgelegd" value={km > 0 ? `${km} km` : '—'} />
         <StatCard icon="⏱️" label="Speeltijd" value={duration > 0 ? formatDuration(duration) : `${tour.settings.duration}m`} />
       </div>
+
+      {/* Achievements */}
+      {achievements.length > 0 && (
+        <div className="glass-card p-5">
+          <p className="label-chip mb-3">Behaalde badges</p>
+          <div className="grid grid-cols-2 gap-2">
+            {achievements.map(a => (
+              <div key={a.id} className="flex items-center gap-2 bg-white/[0.05] rounded-2xl px-3 py-2">
+                <span className="text-2xl shrink-0">{a.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{a.title}</p>
+                  <p className="text-[11px] text-white/40 leading-tight">{a.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Funniest quest */}
       {funniest && (
         <div className="glass-card p-5">
           <p className="label-chip mb-2">Grappigste opdracht</p>
           <p className="text-white font-bold text-lg">{funniest.title}</p>
-          <p className="text-white/60 text-sm mt-1">{funniest.instruction}</p>
+          <p className="text-white/60 text-sm mt-1">{funniest.instruction.split('\n\n')[0]}</p>
         </div>
       )}
 
@@ -92,7 +152,7 @@ export default function SummaryPage() {
         <div className="glass-card p-5">
           <p className="label-chip mb-3">Alle opdrachten</p>
           <div className="flex flex-col gap-2">
-            {tour.quests.map((q, i) => (
+            {tour.quests.map(q => (
               <div key={q.id} className="flex items-start gap-3">
                 <span className="text-base mt-0.5">{TYPE_ICONS[q.type]}</span>
                 <div className="flex-1">
@@ -113,13 +173,20 @@ export default function SummaryPage() {
       )}
 
       {/* Actions */}
+      <button onClick={handleShare} disabled={sharing} className="btn-success text-lg py-4">
+        {sharing ? '📸 Bezig…' : '📤 Deel mijn rit'}
+      </button>
       <button onClick={handleNewTour} className="btn-primary text-xl py-5">
         🚗 Nieuwe tour
       </button>
-
       <Link href="/" className="btn-glass text-center py-4 text-white/60">
         ← Terug naar home
       </Link>
+
+      {/* Verborgen share-card voor afbeelding-export */}
+      <div style={{ position: 'fixed', left: -9999, top: 0 }}>
+        <ShareCard ref={shareRef} tour={tour} endTitle={endTitle} funniest={funniest?.title} />
+      </div>
     </div>
   )
 }

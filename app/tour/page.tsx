@@ -8,17 +8,36 @@ import { Quest, MODE_ICONS, MODE_LABELS } from '@/lib/types'
 import { useLocation } from '@/lib/useLocation'
 import { useSpeech } from '@/lib/useSpeech'
 import { freshSuffix } from '@/lib/mockQuests'
+import { sendFeedback } from '@/lib/feedback'
 import Link from 'next/link'
 
 const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? ''
 
+const COMPASS_NL = ['noord', 'noordoost', 'oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest']
+// Kompasrichting van huidige positie naar het startpunt
+function bearingTo(lat?: number, lng?: number, toLat?: number, toLng?: number): string | undefined {
+  if (lat == null || lng == null || toLat == null || toLng == null) return undefined
+  const φ1 = lat * Math.PI / 180, φ2 = toLat * Math.PI / 180
+  const Δλ = (toLng - lng) * Math.PI / 180
+  const y = Math.sin(Δλ) * Math.cos(φ2)
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
+  const deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
+  return COMPASS_NL[Math.round(deg / 45) % 8]
+}
+
 export default function TourPage() {
   const router = useRouter()
-  const { tour, hydrated, addQuest, resolveQuest, pauseTour, resumeTour, endTour } = useTour()
+  const { tour, hydrated, addQuest, resolveQuest, recordTrace, recordLocation, pauseTour, resumeTour, endTour } = useTour()
   const location = useLocation()
   const speech = useSpeech()
 
+  // Haptische feedback (trilt op telefoons die dit ondersteunen)
+  const vibrate = (pattern: number | number[]) => {
+    try { navigator.vibrate?.(pattern) } catch {}
+  }
+
   const [currentQuest, setCurrentQuest] = useState<Quest | null>(null)
+  const [vote, setVote] = useState<0 | 1 | -1>(0)
   const [loading, setLoading] = useState(false)
   const [timerStarted, setTimerStarted] = useState(false)   // gebruiker/GPS heeft timer gestart
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -58,6 +77,13 @@ export default function TourPage() {
       setTimerStarted(true)
     }
   }, [isMoving, timerStarted, currentQuest])
+
+  // GPS-trace opnemen voor de eindkaart
+  useEffect(() => {
+    if (location.lat != null && location.lng != null && !paused) {
+      recordTrace({ lat: location.lat, lng: location.lng, t: Date.now() })
+    }
+  }, [location.lat, location.lng, paused, recordTrace])
 
   useEffect(() => {
     if (!hydrated) return
@@ -119,9 +145,17 @@ export default function TourPage() {
         durationSeconds: dur,
         completionCondition: data.completionCondition ?? '',
         safetyNote: 'Veiligheid en verkeersregels gaan altijd voor.',
+        locationType: location.type,
       })
       setCurrentQuest(quest)
+      setVote(0)
       setTimerStarted(false)
+
+      // Locatie loggen voor badges (type + plaatsnaam)
+      recordLocation(location.type, location.city || location.village)
+
+      // Korte triller zodat passagiers de nieuwe opdracht voelen
+      vibrate(80)
 
       // Lees de opdracht voor (alleen de hoofdtekst, zonder richting-suffix)
       const mainText = instruction.split('\n\n')[0]
@@ -156,6 +190,11 @@ export default function TourPage() {
           allowStops: tour.settings.stopPreference,
           roadPreference: tour.settings.roadPreference,
           previousTitles,
+          // Terugkeer naar start: alleen in de eindfase en als ingeschakeld
+          returnHome: tour.settings.returnHome === true && phase === 'einde',
+          headingHome: tour.settings.returnHome === true && phase === 'einde' && tour.startCoord
+            ? bearingTo(location.lat, location.lng, tour.startCoord.lat, tour.startCoord.lng)
+            : undefined,
           location: {
             type: location.type,
             description: location.description,
@@ -202,8 +241,17 @@ export default function TourPage() {
     }
   }, [tour, fetchQuest])
 
+  function handleVote(v: 1 | -1) {
+    if (!currentQuest || !tour) return
+    const next = vote === v ? 0 : v   // nogmaals tikken = ongedaan maken
+    setVote(next)
+    vibrate(30)
+    if (next !== 0) sendFeedback(currentQuest, next, tour.settings.mode, tour.places)
+  }
+
   function handleComplete() {
     if (!currentQuest) return
+    vibrate([40, 50, 40])  // dubbele triller = voltooid
     resolveQuest(currentQuest.id, 'completed', 1)
     setCurrentQuest(null)
     fetchQuest()
@@ -311,6 +359,8 @@ export default function TourPage() {
           onSkip={handleSkip}
           onNew={handleNew}
           onPause={handlePause}
+          onVote={handleVote}
+          vote={vote}
           loading={loading}
         />
       ) : null}
