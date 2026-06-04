@@ -18,7 +18,7 @@ export default function TourPage() {
 
   const [currentQuest, setCurrentQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(false)
-  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerStarted, setTimerStarted] = useState(false)   // gebruiker/GPS heeft timer gestart
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [paused, setPaused] = useState(false)
   const [aiEnabled, setAiEnabled] = useState<boolean>(() => {
@@ -39,6 +39,23 @@ export default function TourPage() {
   const loadedRef = useRef(false)
 
   const durationSeconds = (tour?.settings.duration ?? 30) * 60
+
+  // Bewegingsstatus op basis van GPS
+  const isMoving = location.available
+    ? (location.speedKmh !== undefined && location.speedKmh > 3)
+    : true  // geen GPS → neem aan dat je rijdt
+
+  // Timer loopt als: gestart, niet handmatig gepauzeerd, én je rijdt
+  const timerRunning = timerStarted && !paused && isMoving
+  // Auto-pauze indicator voor in de UI
+  const timerAutoPaused = timerStarted && !paused && !isMoving
+
+  // Auto-start timer zodra je rijdt (als er een actieve timer-quest is)
+  useEffect(() => {
+    if (!timerStarted && isMoving && currentQuest?.type === 'timer' && currentQuest.durationSeconds) {
+      setTimerStarted(true)
+    }
+  }, [isMoving, timerStarted, currentQuest])
 
   useEffect(() => {
     if (!hydrated) return
@@ -64,7 +81,7 @@ export default function TourPage() {
   const fetchQuest = useCallback(async () => {
     if (!tour) return
     setLoading(true)
-    setTimerRunning(false)
+    setTimerStarted(false)
 
     const previousTitles = tour.quests.map(q => q.title)
     const timeLeftMinutes = Math.max(1, Math.floor((durationSeconds - elapsedSeconds) / 60))
@@ -103,7 +120,7 @@ export default function TourPage() {
       })
       setCurrentQuest(quest)
       // Timer start NIET automatisch — gebruiker tikt op "Start" in de QuestCard
-      setTimerRunning(false)
+      setTimerStarted(false)
     }
 
     // Mix: ~30% kans op offline quest, ook als AI aan is — voor afwisseling
@@ -156,7 +173,7 @@ export default function TourPage() {
       const active = tour.quests.find(q => q.status === 'active')
       if (active) {
         setCurrentQuest(active)
-        if (active.type === 'timer') setTimerRunning(true)
+        if (active.type === 'timer') setTimerStarted(true)
       } else {
         fetchQuest()
       }
@@ -186,7 +203,7 @@ export default function TourPage() {
   function handlePause() {
     setPaused(p => !p)
     if (paused) resumeTour(); else pauseTour()
-    setTimerRunning(running => !running)
+    setTimerStarted(s => !s)
   }
 
   function handleEndTour() {
@@ -254,9 +271,11 @@ export default function TourPage() {
       ) : currentQuest ? (
         <QuestCard
           quest={currentQuest}
-          timerRunning={timerRunning && !paused}
+          timerRunning={timerRunning}
+          timerAutoPaused={timerAutoPaused}
+          timerStarted={timerStarted}
           onTimerComplete={handleComplete}
-          onStartTimer={() => setTimerRunning(true)}
+          onStartTimer={() => setTimerStarted(true)}
           onComplete={handleComplete}
           onSkip={handleSkip}
           onNew={handleNew}

@@ -49,6 +49,8 @@ function renderInstruction(raw: string) {
 interface QuestCardProps {
   quest: Quest
   timerRunning: boolean
+  timerAutoPaused?: boolean
+  timerStarted?: boolean
   onTimerComplete?: () => void
   onStartTimer?: () => void
   onComplete: () => void
@@ -59,7 +61,8 @@ interface QuestCardProps {
 }
 
 export default function QuestCard({
-  quest, timerRunning, onTimerComplete, onStartTimer,
+  quest, timerRunning, timerAutoPaused, timerStarted,
+  onTimerComplete, onStartTimer,
   onComplete, onSkip, onNew, onPause, loading,
 }: QuestCardProps) {
   const config = TYPE_CONFIG[quest.type]
@@ -84,17 +87,18 @@ export default function QuestCard({
             <TimerDisplay
               totalSeconds={quest.durationSeconds!}
               running={timerRunning}
+              autoPaused={timerAutoPaused}
               onComplete={onTimerComplete}
             />
-            {/* Start-knop: alleen tonen als timer nog niet loopt */}
-            {!timerRunning && onStartTimer && (
+            {/* Start-knop: toon als timer nog niet gestart én geen GPS-autostart */}
+            {!timerStarted && onStartTimer && (
               <button
                 onClick={onStartTimer}
                 className="w-full bg-amber-500/30 hover:bg-amber-500/50 border border-amber-400/40
                            text-amber-200 font-bold rounded-2xl py-3 text-base
                            active:scale-[0.97] transition-all"
               >
-                ▶ Start timer
+                ▶ Start timer handmatig
               </button>
             )}
           </div>
