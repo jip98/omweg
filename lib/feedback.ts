@@ -1,6 +1,6 @@
 import { Quest } from './types'
 
-const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? ''
+const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? 'https://omweg-ai.jipdegroot.workers.dev'
 
 /**
  * Verwijder plaatsnamen uit de tekst zodat de feedback generiek wordt.

@@ -24,3 +24,12 @@ yarn-error.log*
 # vercel / cloudflare
 .vercel
 .wrangler
+
+# capacitor / ios build-artefacten
+ios/App/App/public/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+ios/.build/
+*.xcuserstate
+ios/App/App/capacitor.config.json

@@ -11,7 +11,7 @@ import { freshSuffix } from '@/lib/mockQuests'
 import { sendFeedback } from '@/lib/feedback'
 import Link from 'next/link'
 
-const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? ''
+const AI_WORKER_URL = process.env.NEXT_PUBLIC_AI_WORKER_URL ?? 'https://omweg-ai.jipdegroot.workers.dev'
 
 const COMPASS_NL = ['noord', 'noordoost', 'oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest']
 // Kompasrichting van huidige positie naar het startpunt
